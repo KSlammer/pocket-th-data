@@ -13,6 +13,8 @@
 | `data/cards.json` | ข้อมูลการ์ดพร้อมคำแปล (ที่เว็บใช้) |
 | `data/og.json` | ดัชนีขนาดเล็กสำหรับภาพตัวอย่างตอนแชร์ลิงก์ |
 | `i18n/missing.json` | รายการที่ยังไม่มีคำแปล (สร้างโดย build) |
+| `i18n/auto.json` | คำแปลที่ AI (Claude) แปลอัตโนมัติและยังไม่มีคนตรวจ — ตรวจแล้วลบ key ออกจากไฟล์นี้ |
+| `upcoming.json` | ชุดที่ประกาศแล้วแต่ยังไม่ออก (แก้เอง) จะหายไปเองเมื่อการ์ดชุดนั้นเข้ามา |
 
 ข้อมูลการ์ดต้นทางมาจาก [PocketDecks/pokemon-tcg-pocket-cards](https://github.com/PocketDecks/pokemon-tcg-pocket-cards) (AGPL-3.0-or-later)
 
@@ -49,9 +51,13 @@
 
 ## เพิ่มชุดใหม่
 
+อัตโนมัติ: workflow `update` เช็กทุก 6 ชั่วโมง ดึงข้อมูลการ์ดล่าสุด ให้ Claude แปลข้อความใหม่ แล้ว push เข้า main (ต้องตั้ง secret `ANTHROPIC_API_KEY`) ถ้าแปลไม่ครบจะ push ไป branch `auto-update` แทน
+
+แบบทำเอง:
+
 1. อัปเดตเวอร์ชัน `pokemon-tcg-pocket-cards` ใน `package.json` แล้ว `npm install`
 2. `npm run build` ข้อความใหม่ที่ยังไม่มีคำแปลจะอยู่ใน `i18n/missing.json`
-3. แปลลง `i18n/th.json` จนกว่า `npm test` จะผ่าน แล้ว commit
+3. แปลลง `i18n/th.json` (หรือ `npm run translate`) จนกว่า `npm test` จะผ่าน แล้ว commit
 
 ## ใช้ข้อมูลนี้
 

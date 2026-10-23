@@ -5,6 +5,9 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 const src = JSON.parse(readFileSync('node_modules/pokemon-tcg-pocket-cards/data/v5/cards.json', 'utf8'));
 const th = JSON.parse(readFileSync('i18n/th.json', 'utf8'));
+// Keys machine-translated by scripts/translate.mjs and not yet reviewed; cards show them as "AI".
+const auto = JSON.parse(readFileSync('i18n/auto.json', 'utf8'));
+const ai = { names: new Set(auto.names), text: new Set(auto.text) };
 const check = process.argv.includes('--check');
 
 const tpl = (s) => s.replace(/\[\s*([A-Z])\s*\]/g, '[$1]').replace(/\d+/g, '{n}');
@@ -21,12 +24,12 @@ function text(s) {
   if (!t) { missing.text.add(key); return { en: s, th: null }; }
   const nums = s.match(/\d+/g) || [];
   let i = 0;
-  return { en: s.replace(/\[\s*([A-Z])\s*\]/g, '[$1]'), th: t.replace(/\{n\}/g, () => nums[i++]) };
+  return { en: s.replace(/\[\s*([A-Z])\s*\]/g, '[$1]'), th: t.replace(/\{n\}/g, () => nums[i++]), ai: ai.text.has(key) };
 }
 function name(s) {
   if (!s) return null;
   if (!th.names[s]) missing.names.add(s);
-  return { en: s, th: th.names[s] || null };
+  return { en: s, th: th.names[s] || null, ai: ai.names.has(s) };
 }
 
 const IMG = 'https://raw.githubusercontent.com/PocketDecks/pokemon-tcg-pocket-cards/refs/heads/main/images/webp/cards';
@@ -81,6 +84,8 @@ for (const s of sets) {
   // Promo "packs" are distribution channels with no (or missing) art; the repo has one cover per promo set.
   if (/^p[a-z]$/.test(s.code)) s.packs = [{ id: `promo-${s.code[1]}`, name: 'Promo' }];
 }
+// Announced sets (hand-edited upcoming.json) drop off once their cards arrive in the source data.
+const upcoming = JSON.parse(readFileSync('upcoming.json', 'utf8')).filter((u) => !sets.some((s) => s.code === u.code));
 const total = missing.names.size + missing.text.size;
 console.log(`${cards.length} cards, ${sets.length} sets; untranslated: ${missing.names.size} names, ${missing.text.size} texts; bad {n}: ${bad.length}`);
 
@@ -90,7 +95,7 @@ if (check) {
   process.exit(bad.length || total ? 1 : 0);
 }
 const compact = (k, v) => (v === null || v === false || v === '' ? undefined : v);
-writeFileSync('data/cards.json', JSON.stringify({ img: IMG, packImg: `${PACKS}/webp/packs`, sets, cards }, compact));
+writeFileSync('data/cards.json', JSON.stringify({ img: IMG, packImg: `${PACKS}/webp/packs`, sets, upcoming, cards }, compact));
 // Tiny index for the Worker's link previews (it has ~10 ms CPU, so it can't parse cards.json).
 writeFileSync('data/og.json', JSON.stringify({
   cardImg: IMG.replace('/webp/', '/png/'),

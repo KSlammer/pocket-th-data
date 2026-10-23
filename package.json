@@ -6,9 +6,11 @@
   "description": "Thai translations and built card data for Pokémon TCG Pocket (fan project)",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node scripts/build.mjs --check"
+    "test": "node scripts/build.mjs --check && node test/translate.test.mjs",
+    "translate": "node scripts/translate.mjs"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^1.2.0",
     "pokemon-tcg-pocket-cards": "5.4.0"
   }
 }
