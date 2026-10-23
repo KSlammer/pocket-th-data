@@ -46,6 +46,7 @@ const cards = src.map((c) => ({
   weak: c.weakness && c.weakness !== 'none' ? c.weakness : null,
   ex: c.ex,
   points: c.points > 1 ? c.points : null,
+  tc: c.tradable ? c.trade_cost : null, // trade token cost; absent = can't be traded (☆☆☆, Crown, Promo)
   mega: c.mega,
   ability: c.ability.exists ? { name: name(c.ability.name), text: text(c.ability.effect) } : null,
   attacks: Object.values(c.attacks).filter((a) => a.name).map((a) => ({
