@@ -39,13 +39,16 @@ export function parse(xml, src) {
   }).filter((i) => i.title && /^https:\/\//.test(i.link) && i.date);
 }
 
+// Search feeds also catch forum threads and general Pokémon news; keep headlines about the game itself.
+// Reddit posts are already from the game's subreddit.
+const relevant = (i) => i.kind === 'community' || /pocket|ptcgp/i.test(i.title);
 const norm = (t) => t.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 // Newest first, one entry per link and per headline, only the last DAYS days.
 export function merge(old, fresh, now = Date.now()) {
   const seen = new Set(), out = [];
   for (const i of [...fresh, ...old].sort((a, b) => b.date.localeCompare(a.date))) {
     const k = norm(i.title);
-    if (seen.has(i.link) || seen.has(k) || now - Date.parse(i.date) > DAYS * 864e5) continue;
+    if (!relevant(i) || seen.has(i.link) || seen.has(k) || now - Date.parse(i.date) > DAYS * 864e5) continue;
     seen.add(i.link).add(k);
     // A translation from an earlier run carries over.
     out.push({ ...i, th: i.th ?? old.find((o) => o.link === i.link)?.th });
