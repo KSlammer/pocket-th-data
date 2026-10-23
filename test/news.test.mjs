@@ -14,9 +14,9 @@ assert.deepEqual(g.map((i) => [i.title, i.source, i.kind]), [
 ]);
 
 const atom = `<feed><entry><title>I finally pulled the Crown Mew!</title><link href="https://www.reddit.com/r/PTCGP/comments/x/"/>
-<updated>2026-10-22T10:00:00+00:00</updated><content type="html">&lt;p&gt;body&lt;/p&gt;</content></entry></feed>`;
+<updated>2026-10-22T10:00:00+00:00</updated><media:thumbnail url="https://preview.redd.it/x.jpg?width=640&amp;crop=smart" /><content type="html">&lt;p&gt;body&lt;/p&gt;</content></entry></feed>`;
 const r = parse(atom, { kind: 'community', source: 'r/PTCGP' });
-assert.deepEqual(r[0], { title: 'I finally pulled the Crown Mew!', link: 'https://www.reddit.com/r/PTCGP/comments/x/', date: '2026-10-22T10:00:00.000Z', source: 'r/PTCGP', kind: 'community' });
+assert.deepEqual(r[0], { title: 'I finally pulled the Crown Mew!', link: 'https://www.reddit.com/r/PTCGP/comments/x/', date: '2026-10-22T10:00:00.000Z', source: 'r/PTCGP', kind: 'community', img: 'https://preview.redd.it/x.jpg?width=640&crop=smart' });
 
 const now = Date.parse('2026-10-23T12:00:00Z');
 const old = [{ ...g[1], th: 'เด็ค Mewtwo ที่ดีที่สุด' }, { title: 'Ancient', link: 'https://x.test/a', date: '2026-08-01T00:00:00.000Z' }];

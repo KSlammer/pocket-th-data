@@ -35,7 +35,9 @@ export function parse(xml, src) {
     let host = '';
     try { host = new URL(srcUrl || link).hostname.replace(/^www\./, ''); } catch {}
     const kind = OFFICIAL.test(host) ? 'official' : src.kind === 'official' ? 'news' : src.kind;
-    return { title, link, date: isNaN(date) ? null : date.toISOString(), source: source || host, kind };
+    // Reddit posts carry a thumbnail; Google News items have none (the site falls back to card art).
+    const img = x.match(/<media:thumbnail[^>]*url="(https:\/\/[^"]+)"/)?.[1]?.replace(/&amp;/g, '&');
+    return { title, link, date: isNaN(date) ? null : date.toISOString(), source: source || host, kind, img };
   }).filter((i) => i.title && /^https:\/\//.test(i.link) && i.date);
 }
 
