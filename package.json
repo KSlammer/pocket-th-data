@@ -1,0 +1,14 @@
+{
+  "name": "pocket-th-data",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "description": "Thai translations and built card data for Pokémon TCG Pocket (fan project)",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/build.mjs --check"
+  },
+  "devDependencies": {
+    "pokemon-tcg-pocket-cards": "5.4.0"
+  }
+}
