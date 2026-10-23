@@ -51,11 +51,11 @@
 
 1. อัปเดตเวอร์ชัน `pokemon-tcg-pocket-cards` ใน `package.json` แล้ว `npm install`
 2. `npm run build` ข้อความใหม่ที่ยังไม่มีคำแปลจะอยู่ใน `i18n/missing.json`
-3. แปลลง `i18n/th.json` จนกว่า `npm test` จะผ่าน แล้ว commit และติด tag เวอร์ชันใหม่
+3. แปลลง `i18n/th.json` จนกว่า `npm test` จะผ่าน แล้ว commit
 
 ## ใช้ข้อมูลนี้
 
-ไฟล์ใน `data/` ใช้ได้ตรง ๆ เช่น `https://raw.githubusercontent.com/KSlammer/pocket-th-data/<tag>/data/cards.json` (แนะนำให้ระบุ tag แทน `main`)
+ไฟล์ใน `data/` ใช้ได้ตรง ๆ เช่น `https://raw.githubusercontent.com/KSlammer/pocket-th-data/<commit>/data/cards.json` (แนะนำให้ระบุ commit แทน `main` เพื่อให้ข้อมูลไม่เปลี่ยนเอง)
 
 ## สัญญาอนุญาต
 
