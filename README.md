@@ -14,7 +14,7 @@
 | `data/news.json` | หัวข้อข่าว TCG Pocket (ชื่อเรื่อง ลิงก์ วันที่ แหล่งที่มาเท่านั้น ไม่เก็บเนื้อหาข่าว) อัปเดตทุก 6 ชม. |
 | `data/og.json` | ดัชนีขนาดเล็กสำหรับภาพตัวอย่างตอนแชร์ลิงก์ |
 | `i18n/missing.json` | รายการที่ยังไม่มีคำแปล (สร้างโดย build) |
-| `i18n/auto.json` | คำแปลที่ AI (Claude) แปลอัตโนมัติและยังไม่มีคนตรวจ — ตรวจแล้วลบ key ออกจากไฟล์นี้ |
+| `i18n/auto.json` | คำแปลที่ AI แปลอัตโนมัติและยังไม่มีคนตรวจ — ตรวจแล้วลบ key ออกจากไฟล์นี้ |
 | `upcoming.json` | ชุดที่ประกาศแล้วแต่ยังไม่ออก (แก้เอง) จะหายไปเองเมื่อการ์ดชุดนั้นเข้ามา |
 
 ข้อมูลการ์ดต้นทางมาจาก [PocketDecks/pokemon-tcg-pocket-cards](https://github.com/PocketDecks/pokemon-tcg-pocket-cards) (AGPL-3.0-or-later)
@@ -52,7 +52,9 @@
 
 ## เพิ่มชุดใหม่
 
-อัตโนมัติ: workflow `update` เช็กทุก 6 ชั่วโมง ดึงข้อมูลการ์ดล่าสุด ให้ Claude แปลข้อความใหม่ แล้ว push เข้า main (ต้องตั้ง secret `ANTHROPIC_API_KEY`) ถ้าแปลไม่ครบจะ push ไป branch `auto-update` แทน
+อัตโนมัติ: workflow `update` เช็กทุก 6 ชั่วโมง ดึงข้อมูลการ์ดล่าสุด ให้ AI แปลข้อความใหม่ แล้ว push เข้า main ถ้าแปลไม่ครบจะ push ไป branch `auto-update` แทน
+
+ตั้ง secret อย่างใดอย่างหนึ่ง: `OPENROUTER_API_KEY` (ใช้ model ฟรีของ OpenRouter ที่มีอยู่ตอนนั้น หรือกำหนดเองด้วย variable `OPENROUTER_MODEL`) หรือ `ANTHROPIC_API_KEY` (Claude, เสียเงิน)
 
 แบบทำเอง:
 

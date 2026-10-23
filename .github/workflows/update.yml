@@ -1,6 +1,6 @@
 name: update
 # Every 6 h: pull the newest card data, machine-translate anything new, rebuild, refresh news headlines, push to main.
-# Needs the ANTHROPIC_API_KEY repository secret. If tests still fail, the result goes to the auto-update branch instead.
+# Translation needs an OPENROUTER_API_KEY (free models) or ANTHROPIC_API_KEY repository secret. If tests still fail, the result goes to the auto-update branch instead.
 on:
   schedule:
     - cron: '17 */6 * * *'
@@ -22,6 +22,8 @@ jobs:
       - run: npm run build
       - name: Translate new text
         env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           if [ "$(node -p "const m=require('./i18n/missing.json');m.names.length+m.text.length")" != 0 ]; then
@@ -30,6 +32,8 @@ jobs:
           fi
       - name: News headlines
         env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node scripts/news.mjs
       - name: Commit

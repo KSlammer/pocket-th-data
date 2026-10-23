@@ -1,8 +1,9 @@
 // Collects TCG Pocket headlines into data/news.json: title, link, date and source only (no article text or images),
-// so the site links out to the original. Titles get a Thai translation when ANTHROPIC_API_KEY is set.
+// so the site links out to the original. Titles get a Thai translation when an LLM key is set (scripts/llm.mjs).
 // A source that fails is skipped; earlier items are kept. Run: node scripts/news.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import { llm } from './llm.mjs';
 
 const GN = (q, lang = 'hl=en-US&gl=US&ceid=US:en') => `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&${lang}`;
 export const SOURCES = [
@@ -54,27 +55,20 @@ export function merge(old, fresh, now = Date.now()) {
 
 const isThai = (s) => /[฀-๿]/.test(s);
 async function translateTitles(items) {
-  const todo = items.filter((i) => !i.th && !isThai(i.title));
-  if (!todo.length || !process.env.ANTHROPIC_API_KEY) return;
-  const { default: Anthropic } = await import('@anthropic-ai/sdk');
-  const msg = await new Anthropic().beta.messages.create({
-    model: 'claude-opus-5-5',
-    max_tokens: 8000,
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
-    output_config: {
-      effort: 'low',
-      format: { type: 'json_schema', schema: { type: 'object', properties: { th: { type: 'array', items: { type: 'string' } } }, required: ['th'], additionalProperties: false } },
-    },
+  const todo = items.filter((i) => !i.th && !isThai(i.title)).slice(0, 40);
+  const ask = llm();
+  if (!todo.length || !ask) return;
+  const { th } = await ask({
     system: 'Translate Pokémon TCG Pocket news headlines to natural, short Thai. Keep Pokémon names, card names, set names and game names in English. Return one translation per input, in the same order.',
-    messages: [{ role: 'user', content: JSON.stringify(todo.map((i) => i.title)) }],
+    user: JSON.stringify(todo.map((i) => i.title)),
+    schema: { type: 'object', properties: { th: { type: 'array', items: { type: 'string' } } }, required: ['th'], additionalProperties: false },
+    maxTokens: 8000,
   });
-  if (msg.stop_reason !== 'end_turn') return console.warn(`Title translation skipped (${msg.stop_reason})`);
-  const { th } = JSON.parse(msg.content.find((b) => b.type === 'text').text);
-  if (th.length === todo.length) todo.forEach((i, n) => (i.th = th[n]));
+  if (Array.isArray(th) && th.length === todo.length) todo.forEach((i, n) => (i.th = String(th[n]).trim() || undefined));
+  else console.warn('Title translation skipped: wrong number of results');
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   let old = [];
   try { old = JSON.parse(readFileSync('data/news.json', 'utf8')).items; } catch {}
   const fresh = [];
