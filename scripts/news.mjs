@@ -52,10 +52,67 @@ export function merge(old, fresh, now = Date.now()) {
     const k = norm(i.title);
     if (!relevant(i) || seen.has(i.link) || seen.has(k) || now - Date.parse(i.date) > DAYS * 864e5) continue;
     seen.add(i.link).add(k);
-    // A translation from an earlier run carries over.
-    out.push({ ...i, th: i.th ?? old.find((o) => o.link === i.link)?.th });
+    // Translation, article URL and picture from an earlier run carry over.
+    const prev = old.find((o) => o.link === i.link) || {};
+    out.push({ ...i, th: i.th ?? prev.th, url: i.url ?? prev.url, img: i.img ?? prev.img });
   }
   return out.slice(0, KEEP);
+}
+
+// ---------- pictures: each article's own cover image (og:image) ----------
+const UA = { 'user-agent': 'Mozilla/5.0 (compatible; pocket-th-news/1.0; +https://pokedex-th.slammer.work)' };
+const get = (url, init = {}) => fetch(url, { ...init, headers: { ...UA, ...init.headers }, signal: AbortSignal.timeout(10000) });
+
+// Google News links are redirects behind a script; resolve them the way the open-source googlenewsdecoder does.
+export async function resolveGoogle(link) {
+  const id = new URL(link).pathname.split('/').pop();
+  const page = await (await get(`https://news.google.com/rss/articles/${id}`)).text();
+  const sig = page.match(/data-n-a-sg="([^"]+)"/)?.[1], ts = page.match(/data-n-a-ts="([^"]+)"/)?.[1];
+  if (!sig || !ts) return null;
+  const req = [[['Fbv4je', JSON.stringify(['garturlreq', [['X', 'X', ['X', 'X'], null, null, 1, 1, 'US:en', null, 1, null, null, null, null, null, 0, 1], 'X', 'X', 1, [1, 1, 1], 1, 1, null, 0, 0, null, 0], id, +ts, sig]), null, 'generic']]];
+  const res = await get('https://news.google.com/_/DotsSplashUi/data/batchexecute', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    body: `f.req=${encodeURIComponent(JSON.stringify(req))}`,
+  });
+  const url = JSON.parse(JSON.parse((await res.text()).split('\n\n')[1])[0][2])[1];
+  return /^https:\/\//.test(url) ? url : null;
+}
+// og:image / twitter:image from an article's HTML, made absolute.
+export function ogImage(html, base) {
+  for (const m of html.matchAll(/<meta\b[^>]*>/gi)) {
+    const tag = m[0];
+    if (!/(property|name)=["'](og:image(:secure_url)?|twitter:image(:src)?)["']/i.test(tag)) continue;
+    const v = tag.match(/content=["']([^"']+)["']/i)?.[1];
+    if (!v) continue;
+    try {
+      const u = new URL(decode(v), base);
+      if (u.protocol === 'https:') return u.href;
+    } catch {}
+  }
+  return null;
+}
+// Items never tried get `img` (or '' when the article has none) and `url` (the article itself), at most `max` per run.
+async function addPictures(items, max = 30) {
+  const todo = items.filter((i) => i.img === undefined).slice(0, max);
+  let found = 0;
+  await Promise.all([0, 1, 2, 3].map(async (w) => {
+    for (let k = w; k < todo.length; k += 4) {
+      const i = todo[k];
+      try {
+        i.url ??= /news\.google\.com/.test(i.link) ? await resolveGoogle(i.link) : i.link;
+        if (i.url) {
+          const res = await get(i.url);
+          i.img = (res.ok && ogImage(await res.text(), res.url)) || '';
+        } else i.img = '';
+      } catch (e) {
+        i.img = '';
+        console.warn(`no picture for ${i.link}: ${e.message}`);
+      }
+      if (i.img) found++;
+    }
+  }));
+  console.log(`pictures: ${found}/${todo.length} found`);
 }
 
 const isThai = (s) => /[฀-๿]/.test(s);
@@ -89,6 +146,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
   }
   const items = merge(old, fresh);
+  await addPictures(items);
   try { await translateTitles(items); } catch (e) { console.warn(`Title translation failed: ${e.message}`); }
   writeFileSync('data/news.json', JSON.stringify({ items }, (k, v) => (v === undefined ? undefined : v), 1));
   console.log(`${items.length} items`);

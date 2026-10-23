@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '17 */6 * * *'
   workflow_dispatch:
+  # Changing a script or this workflow runs it once, so changes are tried against the live sources right away.
+  push:
+    branches: [main]
+    paths: ['scripts/**', '.github/workflows/update.yml']
 permissions:
   contents: write
 concurrency: update
@@ -36,11 +40,13 @@ jobs:
           OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node scripts/news.mjs
+      - name: Tournament meta (Limitless TCG)
+        run: node scripts/meta.mjs || echo "meta update failed; keeping the previous data/meta.json"
       - name: Commit
         run: |
-          git diff --quiet && { echo "No changes"; exit 0; }
+          git add -A
+          git diff --cached --quiet && { echo "No changes"; exit 0; }
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add -A
           git commit -m "Update card data ($(node -p "require('./package.json').devDependencies['pokemon-tcg-pocket-cards']"))"
           if npm test; then git push origin HEAD:main; else git push -f origin HEAD:auto-update; exit 1; fi

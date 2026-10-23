@@ -1,6 +1,6 @@
 // Feed parsing (Google News RSS + Reddit Atom), official detection, and merge/dedupe.
 import assert from 'node:assert/strict';
-import { parse, merge } from '../scripts/news.mjs';
+import { parse, merge, ogImage } from '../scripts/news.mjs';
 
 const rss = `<rss><channel><item><title>TCG Pocket: Dual Fusion arrives Oct 29 &amp; more - Pokemon.com</title>
 <link>https://news.google.com/rss/articles/abc</link><pubDate>Thu, 23 Oct 2026 01:00:00 GMT</pubDate>
@@ -24,4 +24,7 @@ const forum = { title: 'IS TWIZZLERS JUST LIQUORICE?', link: 'https://x.test/f',
 const m = merge(old, [...g, { ...g[0], link: 'https://other/dup' }, ...r, forum], now);
 assert.deepEqual(m.map((i) => i.title), ['TCG Pocket: Dual Fusion arrives Oct 29 & more', 'I finally pulled the Crown Mew!', 'Best Mewtwo deck in Pocket']);
 assert.equal(m[2].th, 'เด็ค Mewtwo ที่ดีที่สุด'); // translation carried over, too-old item, off-topic thread and duplicate headline dropped
+assert.equal(ogImage('<head><meta content="/img/a.jpg?x=1&amp;y=2" property="og:image"></head>', 'https://site.test/news/1'), 'https://site.test/img/a.jpg?x=1&y=2');
+assert.equal(ogImage('<meta name="twitter:image" content="http://insecure.test/a.jpg">', 'https://s.test/'), null);
+assert.equal(ogImage('<meta property="og:title" content="x">', 'https://s.test/'), null);
 console.log('news ok');
