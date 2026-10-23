@@ -1,5 +1,5 @@
 name: update
-# Every 6 h: pull the newest card data, machine-translate anything new, rebuild, push to main.
+# Every 6 h: pull the newest card data, machine-translate anything new, rebuild, refresh news headlines, push to main.
 # Needs the ANTHROPIC_API_KEY repository secret. If tests still fail, the result goes to the auto-update branch instead.
 on:
   schedule:
@@ -28,6 +28,10 @@ jobs:
             npm run translate || true
             npm run build
           fi
+      - name: News headlines
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/news.mjs
       - name: Commit
         run: |
           git diff --quiet && { echo "No changes"; exit 0; }
