@@ -2,11 +2,11 @@
 import assert from 'node:assert/strict';
 import { summarize, combine } from '../scripts/meta.mjs';
 
-const list = (...names) => ({ pokemon: names.map((name) => ({ name, count: 2 })), trainer: [{ name: 'Professor\'s Research', count: 2 }] });
+const list = (...names) => ({ pokemon: names.map((name, i) => ({ name, count: 2, set: 'A1', number: i + 1 })), trainer: [{ name: 'Professor\'s Research', count: 2, set: 'P-A', number: 7 }] });
 const standings = [
-  { player: 'a', deck: { name: 'Mewtwo ex' }, decklist: list('Mewtwo ex', 'Ralts') },
-  { player: 'b', deck: { name: 'Mewtwo ex' }, decklist: list('Mewtwo ex') },
-  { player: 'c', deck: { name: 'Pikachu ex' }, decklist: list('Pikachu ex') },
+  { player: 'a', placing: 3, deck: { name: 'Mewtwo ex' }, decklist: list('Mewtwo ex', 'Ralts') },
+  { player: 'b', placing: 1, deck: { name: 'Mewtwo ex' }, decklist: list('Mewtwo ex') },
+  { player: 'c', placing: 2, deck: { name: 'Pikachu ex' }, decklist: list('Pikachu ex') },
   { player: 'd' }, // no deck reported
 ];
 const pairings = [
@@ -29,4 +29,8 @@ assert.equal(m.decks[0].share, 0.6667);
 // Ralts is in 1 of 2 Mewtwo lists (0.5) → kept; Professor's Research in all.
 assert.deepEqual(m.decks[0].cards.map(([c]) => c).sort(), ["Mewtwo ex", "Professor's Research", 'Ralts']);
 assert.deepEqual(m.matchups.find(([a, b]) => a === 'Mewtwo ex' && b === 'Pikachu ex'), ['Mewtwo ex', 'Pikachu ex', 2, 2, 0]);
+// Sample list: the best placing, ids mapped to ours.
+assert.deepEqual(m.decks[0].sample.list, [[2, 'a1-001'], [2, 'pa-007']]);
+assert.equal(m.decks[0].sample.placing, 1);
+assert.equal(combine([s], () => false).decks[0].sample, undefined); // unknown cards → no sample
 console.log('meta ok');

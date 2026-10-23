@@ -1,5 +1,6 @@
 // Tournament meta from the Limitless TCG public API (https://play.limitlesstcg.com, game POCKET) → data/meta.json:
-// archetype share and win rate, archetype-vs-archetype results, and each archetype's signature cards (to match a user's deck).
+// archetype share and win rate, archetype-vs-archetype results, each archetype's signature cards (to match a user's deck),
+// and one real list per archetype (the best finish) so the site can show it and turn it into an in-game QR code.
 // Per-tournament summaries are cached in meta-cache.json so each run only downloads new events.
 // Unauthenticated limit is 50 requests / 5 min, so requests are spaced 6.5 s apart and capped per run.
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -9,16 +10,21 @@ const API = 'https://play.limitlesstcg.com/api';
 const DAYS = 14, MIN_PLAYERS = 32, MAX_NEW = 20, GAP_MS = 6500;
 const TOP = 40; // archetypes kept in the output
 
-// One tournament → { decks: {arch: players}, games: [[a, b, w, l, t]], lists: {arch: {card: lists containing it}}, n: {arch: lists} }.
+// One tournament → { decks: {arch: players}, games: [[a, b, w, l, t]], lists: {arch: {card: lists containing it}}, n: {arch: lists},
+//   best: {arch: {placing, players, list: [[count, set, number, name]]}} }.
 export function summarize(standings, pairings) {
-  const deckOf = new Map(), decks = {}, lists = {}, n = {};
+  const deckOf = new Map(), decks = {}, lists = {}, n = {}, best = {};
   for (const s of standings) {
     const arch = s.deck?.name;
     if (!arch) continue;
     deckOf.set(s.player, arch);
     decks[arch] = (decks[arch] || 0) + 1;
-    const cards = new Set([...(s.decklist?.pokemon || []), ...(s.decklist?.trainer || [])].map((c) => c.name));
+    const entries = [...(s.decklist?.pokemon || []), ...(s.decklist?.trainer || [])];
+    const cards = new Set(entries.map((c) => c.name));
     if (!cards.size) continue;
+    if (s.placing && (!best[arch] || s.placing < best[arch].placing)) {
+      best[arch] = { placing: s.placing, players: standings.length, player: s.name || s.player, list: entries.map((c) => [c.count, c.set, c.number, c.name]) };
+    }
     n[arch] = (n[arch] || 0) + 1;
     const l = (lists[arch] ||= {});
     for (const c of cards) l[c] = (l[c] || 0) + 1;
@@ -32,16 +38,26 @@ export function summarize(standings, pairings) {
     else if (p.winner === p.player1) { add(a, b, 0); add(b, a, 1); }
     else if (p.winner === p.player2) { add(a, b, 1); add(b, a, 0); }
   }
-  return { decks, lists, n, games: [...games].map(([k, g]) => [...k.split('\t'), ...g]) };
+  return { decks, lists, n, best, games: [...games].map(([k, g]) => [...k.split('\t'), ...g]) };
 }
 
-// Many tournament summaries → the published table.
-export function combine(events) {
-  const decks = {}, lists = {}, n = {}, games = new Map();
+// Limitless set/number → our card id ("A3a", 12 → "a3a-012"; promo "P-A" → "pa").
+export const cardId = (set, number) => `${String(set).toLowerCase().replace(/^p-/, 'p')}-${String(number).padStart(3, '0')}`;
+
+// Many tournament summaries → the published table. `known(id)` says whether a card id exists in our data.
+export function combine(events, known = () => true) {
+  const decks = {}, lists = {}, n = {}, games = new Map(), best = {};
   for (const e of events) {
     for (const [a, c] of Object.entries(e.decks)) decks[a] = (decks[a] || 0) + c;
     for (const [a, c] of Object.entries(e.n)) n[a] = (n[a] || 0) + c;
     for (const [a, l] of Object.entries(e.lists)) for (const [card, c] of Object.entries(l)) (lists[a] ||= {})[card] = (lists[a][card] || 0) + c;
+    // Best finish relative to field size (1st of 188 beats 1st of 33); only lists whose every card we know.
+    for (const [a, b] of Object.entries(e.best || {})) {
+      const list = b.list.map(([count, set, number, name]) => [count, cardId(set, number), name]);
+      if (!list.every(([, id]) => known(id))) continue;
+      const score = b.placing / b.players;
+      if (!best[a] || score < best[a].score) best[a] = { score, placing: b.placing, players: b.players, player: b.player, event: e.name, date: e.date, list };
+    }
     for (const [a, b, w, l, t] of e.games) {
       const g = games.get(`${a}\t${b}`) || [0, 0, 0];
       games.set(`${a}\t${b}`, [g[0] + w, g[1] + l, g[2] + t]);
@@ -58,6 +74,7 @@ export function combine(events) {
       share: +(decks[a] / players).toFixed(4),
       // Cards in at least half of this archetype's lists, most common first.
       cards: Object.entries(lists[a] || {}).map(([c, k]) => [c, +(k / n[a]).toFixed(2)]).filter(([, f]) => f >= 0.5).sort((x, y) => y[1] - x[1]).slice(0, 15),
+      sample: best[a] && { placing: best[a].placing, players: best[a].players, player: best[a].player, event: best[a].event, date: best[a].date, list: best[a].list.map(([c, id]) => [c, id]) },
     })),
     matchups: [...games].map(([k, g]) => [...k.split('\t'), ...g]).filter(([a, b]) => keep.has(a) && keep.has(b)),
   };
@@ -88,7 +105,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   console.log(`${list.length} recent events ≥${MIN_PLAYERS} players; format ${format}: ${recent.length}; formats seen: ${[...new Set(list.map((t) => t.format))].join(', ')}`);
   let fetched = 0;
   for (const t of recent) {
-    if (cache[t.id] || fetched >= MAX_NEW) continue;
+    if (cache[t.id]?.best || fetched >= MAX_NEW) continue; // entries cached before lists were kept get refetched
     try {
       const standings = await api(`/tournaments/${t.id}/standings`);
       const pairings = await api(`/tournaments/${t.id}/pairings`);
@@ -103,6 +120,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const events = Object.values(cache).filter((e) => e.format === format);
   if (!events.length) { console.log('No tournament data; meta.json unchanged'); process.exit(0); }
   writeFileSync('meta-cache.json', JSON.stringify(cache));
+  const ids = new Set(JSON.parse(readFileSync('data/cards.json', 'utf8')).cards.map((c) => c.id));
+  const missingIds = new Set(Object.values(cache).flatMap((e) => Object.values(e.best || {}).flatMap((b) => b.list.map(([, set, num]) => cardId(set, num)))).filter((id) => !ids.has(id)));
+  if (missingIds.size) console.log(`card ids not in our data: ${[...missingIds].slice(0, 20).join(' ')}`);
   const dates = events.map((e) => e.date).sort();
   writeFileSync('data/meta.json', JSON.stringify({
     source: 'Limitless TCG',
@@ -112,7 +132,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     from: dates[0],
     to: dates.at(-1),
     tournaments: events.length,
-    ...combine(events),
+    ...combine(events, (id) => ids.has(id)),
   }));
   console.log(`meta.json: ${events.length} events, fetched ${fetched} new`);
 }
