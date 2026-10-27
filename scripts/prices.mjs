@@ -1,4 +1,4 @@
-// Physical Pokémon TCG market prices, latest era (Scarlet & Violet / Mega Evolution), for the site's "real card prices" tab.
+// Physical Pokémon TCG market prices, every set, for the site's "real card prices" tab.
 //   English  – TCGplayer (USD) via tcgcsv.com category 3, plus Cardmarket's public price guide (EUR) for sealed products
 //   Japanese – TCGplayer "Pokemon Japan" (USD) via tcgcsv.com category 85
 //   Thai market – TCG Thailand (tcgthailand.com) listings: lowest asking price in THB per product, for its Thai,
@@ -12,8 +12,9 @@ import { pathToFileURL } from 'node:url';
 const TCGCSV = 'https://tcgcsv.com/tcgplayer';
 const CM = 'https://downloads.s3.cardmarket.com/productCatalog';
 const UA = { 'user-agent': 'pocket-th-prices/1.0 (+https://pokedex-th.slammer.work)' };
-// Latest era only, by set code at the start of the group name ("SV07: Stellar Crown", "ME02: …", "M1L: Mega Brave").
-export const LATEST = { en: /^(SV|ME)\d|^SV: |^ME: |^SVE\b|^MEE\b/i, jp: /^(SV|M)\d|^SV-?P\b|^M-?P\b/i };
+// tcgcsv's publishedOn is the release date ("2026-11-06T00:00:00") for most groups, but a bulk-republish timestamp
+// ("2026-10-26T20:00:06.0248517Z") for many old ones; only the former is a usable date.
+export const releaseDate = (g) => (/T00:00:00$/.test(g.publishedOn || '') ? g.publishedOn.slice(0, 10) : '');
 const TCGTH = 'https://www.tcgthailand.com';
 const TCGTH_CATS = { th: /โปเกมอน/, jp: /Pok[eé]mon TCG \(Japanese\)/, en: /Pok[eé]mon TCG \(English\)/ };
 const SKIP = /code card|jumbo|oversized|deck box|sleeve|playmat|binder|portfolio/i;
@@ -120,27 +121,35 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   } catch (e) { console.warn(`Cardmarket skipped: ${e.message}`); }
 
   const index = { updated: new Date().toISOString(), fx: { THB: fx.THB, EUR: fx.EUR, JPY: fx.JPY }, sets: { en: [], jp: [] }, th: [] };
+  // Every sealed product per language in one file, for the "all packs/boxes" view: [groupId, set, id, name, prices, cardmarket?]
+  const sealedAll = { en: [], jp: [] };
+  mkdirSync(`${out}/sealed`, { recursive: true });
   for (const [lang, cat] of [['en', 3], ['jp', 85]]) {
-    const groups = (await json(`${TCGCSV}/${cat}/groups`)).results.filter((g) => LATEST[lang].test(g.name));
-    console.log(`${lang}: ${groups.length} groups: ${groups.map((g) => g.name).join(' | ')}`);
+    const groups = (await json(`${TCGCSV}/${cat}/groups`)).results;
+    console.log(`${lang}: ${groups.length} groups`);
     let matched = 0, sealedN = 0;
     for (const g of groups) {
       const [products, prices] = await Promise.all([json(`${TCGCSV}/${cat}/${g.groupId}/products`), json(`${TCGCSV}/${cat}/${g.groupId}/prices`)]);
       const { cards, sealed } = group(products.results, prices.results);
       if (lang === 'en') for (const s of sealed) { const m = cm.get(norm(s[1])); sealedN++; if (m) { s.push(m); matched++; } }
       writeFileSync(`${out}/${lang}/${g.groupId}.json`, JSON.stringify({ name: g.name, cards, sealed }));
-      index.sets[lang].push({ id: g.groupId, name: g.name, code: code(g.name), date: (g.publishedOn || '').slice(0, 10), cards: cards.length, sealed: sealed.length });
+      index.sets[lang].push({ id: g.groupId, name: g.name, code: code(g.name), date: releaseDate(g), cards: cards.length, sealed: sealed.length });
+      for (const x of sealed) if (x[2].length) sealedAll[lang].push([g.groupId, g.name, ...x]);
       await new Promise((r) => setTimeout(r, 300)); // be gentle with tcgcsv
     }
     if (lang === 'en') console.log(`Cardmarket sealed matches: ${matched}/${sealedN}`);
-    index.sets[lang].sort((a, b) => b.date.localeCompare(a.date) || b.name.localeCompare(a.name));
+    // Dated sets newest first; undated (old) ones after, newest TCGplayer group first.
+    index.sets[lang].sort((a, b) => (b.date || '0').localeCompare(a.date || '0') || b.id - a.id);
+    const order = new Map(index.sets[lang].map((x, i) => [x.id, i]));
+    sealedAll[lang].sort((a, b) => order.get(a[0]) - order.get(b[0]) || (b[4][0]?.[1] ?? 0) - (a[4][0]?.[1] ?? 0));
+    writeFileSync(`${out}/sealed/${lang}.json`, JSON.stringify(sealedAll[lang]));
+    console.log(`${lang}: ${sealedAll[lang].length} priced sealed products`);
   }
 
   // Thai sets (names in Thai) from TCGdex, paired with a Japanese group by set code when possible.
   try {
     const jp = new Map(index.sets.jp.map((s) => [s.code, s.id]));
     for (const s of await json('https://api.tcgdex.net/v2/th/sets')) {
-      if (!/^(SV|M)/i.test(s.id)) continue;
       const c = s.id.toUpperCase();
       index.th.push({ id: s.id, name: s.name, total: s.cardCount?.total, jp: jp.get(c) ?? jp.get(c.replace(/[SKDTA]$/, '')) ?? null });
     }
@@ -185,6 +194,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         writeFileSync(`${out}/market/${lang}/${i}.json`, JSON.stringify(s.items));
         return { file: i, name: s.name, date: s.date, items: s.items.length };
       });
+      // All sealed listings of this language, newest set first: [set, ...item]
+      writeFileSync(`${out}/sealed/market-${lang}.json`, JSON.stringify(sets.flatMap((x) => x.items.filter((i) => i[7]).map((i) => [x.name, ...i]))));
       console.log(`TCG Thailand ${lang} (${cat.name}): ${cat.sets?.length} sets, ${listings} listings → ${sets.length} sets with prices, ${sets.reduce((a, s) => a + s.items.length, 0)} priced items`);
     }
   } catch (e) { console.warn(`TCG Thailand skipped: ${e.message}`); }

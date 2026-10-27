@@ -13,7 +13,7 @@
 | `data/cards.json` | ข้อมูลการ์ดพร้อมคำแปล (ที่เว็บใช้) |
 | `data/news.json` | หัวข้อข่าว TCG Pocket (ชื่อเรื่อง ลิงก์ วันที่ แหล่งที่มาเท่านั้น ไม่เก็บเนื้อหาข่าว) อัปเดตทุก 6 ชม. |
 | `data/meta.json` | เมต้าจากทัวร์นาเมนต์ใน [Limitless TCG](https://play.limitlesstcg.com/tournaments?game=POCKET) 14 วันล่าสุด (สัดส่วนเด็ค ผลแพ้ชนะรายคู่ การ์ดหลักของแต่ละเด็ค) ขอบคุณ Limitless ที่เปิด API ให้ใช้ |
-| branch `prices` | ราคาการ์ดจริง (Pokémon TCG แบบกระดาษ) ยุค Scarlet & Violet / Mega Evolution อัปเดตทุกวัน: TCGplayer ผ่าน [tcgcsv](https://tcgcsv.com) (อังกฤษ/ญี่ปุ่น, USD) และราคากลาง Cardmarket (ซอง/กล่องภาษาอังกฤษ, EUR); ชื่อชุดภาษาไทยจาก [TCGdex](https://tcgdex.dev) (MIT) |
+| branch `prices` | ราคาการ์ดจริง (Pokémon TCG แบบกระดาษ) ทุกชุด อัปเดตทุกวัน: TCGplayer ผ่าน [tcgcsv](https://tcgcsv.com) (อังกฤษ/ญี่ปุ่น, USD) และราคากลาง Cardmarket (ซอง/กล่องภาษาอังกฤษ, EUR); ชื่อชุดภาษาไทยจาก [TCGdex](https://tcgdex.dev) (MIT); ราคาในไทยจาก [TCG Thailand](https://www.tcgthailand.com) (ราคาตั้งขายต่ำสุด) |
 | `data/og.json` | ดัชนีขนาดเล็กสำหรับภาพตัวอย่างตอนแชร์ลิงก์ |
 | `i18n/missing.json` | รายการที่ยังไม่มีคำแปล (สร้างโดย build) |
 | `i18n/auto.json` | คำแปลที่ AI แปลอัตโนมัติและยังไม่มีคนตรวจ — ตรวจแล้วลบ key ออกจากไฟล์นี้ |

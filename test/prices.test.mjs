@@ -1,6 +1,6 @@
 // Real-card prices: card vs sealed split, printings sorted by price, name matching, set codes.
 import assert from 'node:assert/strict';
-import { group, norm, code, LATEST, revive, marketSet } from '../scripts/prices.mjs';
+import { group, norm, code, releaseDate, revive, marketSet } from '../scripts/prices.mjs';
 
 const products = [
   { productId: 1, name: 'Pikachu ex', extendedData: [{ name: 'Number', value: '057/191' }, { name: 'Rarity', value: 'Double Rare' }] },
@@ -23,8 +23,8 @@ assert.equal(norm('Pokémon TCG: Delta Reign — Booster Box'), norm('Delta Reig
 assert.equal(code('SV07: Stellar Crown'), 'SV7');
 assert.equal(code('M1L: Mega Brave'), 'M1L');
 assert.equal(code('ME02: Phantasmal Flames'), 'ME2');
-assert.ok(LATEST.en.test('SV: Prismatic Evolutions') && LATEST.en.test('ME06: Delta Reign') && !LATEST.en.test('POP Series 1'));
-assert.ok(LATEST.jp.test('M1L: Mega Brave') && LATEST.jp.test('SV7a: Paradise Dragona') && !LATEST.jp.test('Gym Challenge'));
+assert.equal(releaseDate({ publishedOn: '2026-11-06T00:00:00' }), '2026-11-06');
+assert.equal(releaseDate({ publishedOn: '2026-10-26T20:00:06.0248517Z' }), ''); // bulk republish, not a release date
 // Nuxt payload: indexes resolve, wrappers unwrap, shared refs stay shared.
 const root = revive([['ShallowReactive', 1], { data: 2 }, { list: 3, n: 4 }, [5, 5], 7, 'x']);
 assert.deepEqual(root, { data: { list: ['x', 'x'], n: 7 } });
