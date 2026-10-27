@@ -1,24 +1,21 @@
-// Temporary: TCG Thailand robots, terms and whether Pokémon is listed. Run on GitHub Actions.
+// Temporary: TCG Thailand Pokémon listings structure. Run on GitHub Actions.
 const UA = { 'user-agent': 'Mozilla/5.0 (compatible; pocket-th-prices/0.1; +https://pokedex-th.slammer.work)' };
 const strip = (h) => h.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '').replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
-async function show(label, url, fn = (t) => t.slice(0, 1200)) {
-  try { const r = await fetch(url, { headers: UA, signal: AbortSignal.timeout(20000) }); const t = await r.text(); console.log(`\n=== ${label} ${r.status} ${t.length}B\n${fn(t)}`); }
-  catch (e) { console.log(`\n=== ${label} ERROR ${e.message}`); }
+async function get(url) { const r = await fetch(url, { headers: UA, signal: AbortSignal.timeout(25000) }); return [r, await r.text()]; }
+const [, sm] = await get('https://www.tcgthailand.com/__sitemap__/products-0.xml');
+const locs = [...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+const pk = locs.filter((u) => /pokemon/i.test(u));
+console.log(`sitemap products-0: ${locs.length} urls, pokemon-ish ${pk.length}\n${pk.slice(0, 12).join('\n')}\nother sample: ${locs.slice(0, 5).join(' ')}`);
+const [, page] = await get('https://www.tcgthailand.com/product?search=pokemon');
+const hrefs = [...new Set([...page.matchAll(/href="([^"]*(?:pokemon|category|game)[^"]*)"/gi)].map((m) => m[1]))].slice(0, 30);
+console.log(`\npokemon-related hrefs: ${hrefs.join(' ')}`);
+const nuxt = page.match(/<script[^>]*id="__NUXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)?.[1];
+console.log(`__NUXT_DATA__: ${nuxt ? nuxt.length + 'B ' + nuxt.slice(0, 600) : 'none'}`);
+const t = strip(page);
+const i = t.search(/Pok[eé]mon TCG/);
+console.log(`\ntext around pokemon: ${t.slice(Math.max(0, i - 200), i + 1500)}`);
+for (const u of pk.slice(0, 2)) {
+  const [r, h] = await get(u);
+  const ld = [...h.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1].slice(0, 600));
+  console.log(`\n--- ${r.status} ${u}\nld+json: ${ld.join('\n')}\ntext: ${strip(h).slice(0, 700)}`);
 }
-await show('robots', 'https://www.tcgthailand.com/robots.txt', (t) => t.slice(0, 2500));
-for (const l of ['en', 'th']) {
-  await show(`terms ${l}`, `https://www.tcgthailand.com/${l}/term-condition`, (h) => {
-    const t = strip(h);
-    const hits = [...t.matchAll(/.{0,300}(scrap|crawl|robot|\bbots?\b|automat|data mining|spider|harvest|copy|reproduc|commercial|intellectual|ดึงข้อมูล|คัดลอก|ทำซ้ำ|อัตโนมัติ|บอท|ทรัพย์สินทางปัญญา|เชิงพาณิชย์|ลิขสิทธิ์).{0,300}/gi)].map((m) => '• ' + m[0].trim());
-    return `${t.length} chars\n${[...new Set(hits)].slice(0, 14).join('\n')}`;
-  });
-}
-await show('pokemon on home?', 'https://www.tcgthailand.com/th', (h) => {
-  const t = strip(h);
-  const games = [...new Set([...t.matchAll(/([A-Za-z][A-Za-z' ]{2,40}) Latest Sets|([^\s]{2,30}) ชุดล่าสุด/g)].map((m) => m[1] || m[2]))];
-  return `games: ${games.join(' | ')}\npokemon mentions: ${(t.match(/pok[eé]mon|โปเกม่อน|โปเกมอน/gi) || []).length}\n${(t.match(/.{0,120}(pok[eé]mon|โปเกม่อน|โปเกมอน).{0,200}/i) || [''])[0]}`;
-});
-await show('product search pokemon', 'https://www.tcgthailand.com/product?search=pokemon', (h) => {
-  const t = strip(h);
-  return `${(t.match(/pok[eé]mon|โปเกม่อน|โปเกมอน/gi) || []).length} mentions; ${t.slice(0, 700)}`;
-});
