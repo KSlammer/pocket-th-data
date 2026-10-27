@@ -1,0 +1,17 @@
+name: probe
+# Temporary: inspect a data source from a runner. Remove after use.
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/probe-tcgth.mjs', '.github/workflows/probe.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - run: node scripts/probe-tcgth.mjs
