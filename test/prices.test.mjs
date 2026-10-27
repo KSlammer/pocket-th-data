@@ -1,6 +1,6 @@
 // Real-card prices: card vs sealed split, printings sorted by price, name matching, set codes.
 import assert from 'node:assert/strict';
-import { group, norm, code, LATEST } from '../scripts/prices.mjs';
+import { group, norm, code, LATEST, revive, thaiMarket } from '../scripts/prices.mjs';
 
 const products = [
   { productId: 1, name: 'Pikachu ex', extendedData: [{ name: 'Number', value: '057/191' }, { name: 'Rarity', value: 'Double Rare' }] },
@@ -25,4 +25,17 @@ assert.equal(code('M1L: Mega Brave'), 'M1L');
 assert.equal(code('ME02: Phantasmal Flames'), 'ME2');
 assert.ok(LATEST.en.test('SV: Prismatic Evolutions') && LATEST.en.test('ME06: Delta Reign') && !LATEST.en.test('POP Series 1'));
 assert.ok(LATEST.jp.test('M1L: Mega Brave') && LATEST.jp.test('SV7a: Paradise Dragona') && !LATEST.jp.test('Gym Challenge'));
+// Nuxt payload: indexes resolve, wrappers unwrap, shared refs stay shared.
+const root = revive([['ShallowReactive', 1], { data: 2 }, { list: 3, n: 4 }, [5, 5], 7, 'x']);
+assert.deepEqual(root, { data: { list: ['x', 'x'], n: 7 } });
+
+// TCG Thailand listings: grouped by set, sealed first then by price, unpriced dropped.
+const m = thaiMarket([
+  { id: 'a', name: 'พิคาชู ex', alternative_name: 'Pikachu ex', set_code: 'MA6 T', product_code: '036/130', rarity: 'RR', min_price: '100.00', stock_quantity: 3, sell_date: '2026-09-16T00:00:00+07:00' },
+  { id: 'b', name: '[กล่อง] 30th Celebration', set_code: 'MA6 T', rarity: '-', min_price: '2090.00', stock_quantity: 1, sell_date: '2026-09-16T00:00:00+07:00' },
+  { id: 'c', name: 'มิวทู ex', set_code: 'MA6 T', min_price: '0.00' },
+  { id: 'd', name: 'Old', set_code: 'SV1', min_price: '20.00', sell_date: '2024-01-01T00:00:00+07:00' },
+], { 'MA6 T': '30th Celebration' });
+assert.deepEqual(m.map((s) => [s.code, s.name, s.date, s.items.map((i) => i[0])]), [['MA6 T', '30th Celebration', '2026-09-16', ['b', 'a']], ['SV1', '', '2024-01-01', ['d']]]);
+assert.deepEqual(m[0].items[1], ['a', 'พิคาชู ex', 'Pikachu ex', '036/130', 'RR', 100, 3, 0]);
 console.log('prices ok');

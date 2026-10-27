@@ -1,8 +1,10 @@
 // Physical Pokémon TCG market prices, latest era (Scarlet & Violet / Mega Evolution), for the site's "real card prices" tab.
 //   English  – TCGplayer (USD) via tcgcsv.com category 3, plus Cardmarket's public price guide (EUR) for sealed products
 //   Japanese – TCGplayer "Pokemon Japan" (USD) via tcgcsv.com category 85
-//   Thai     – no open price source (SASOM's terms forbid automated collection), so Thai sets from TCGdex get a
-//              Japanese reference price where the set codes match, and the site links to SASOM to check.
+//   Thai market – TCG Thailand (tcgthailand.com) listings: lowest asking price in THB per product, for its Thai,
+//              Japanese and English Pokémon categories. Its terms don't restrict automated access and robots.txt allows
+//              these pages; we read the public category pages once a day, one page every 1.5 s. (SASOM's terms forbid
+//              automated collection, so SASOM is only linked.) Thai sets from TCGdex keep a Japanese reference price.
 // Output goes to out/prices/ and is force-pushed to the `prices` branch (one commit, no history: prices change daily).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -12,6 +14,8 @@ const CM = 'https://downloads.s3.cardmarket.com/productCatalog';
 const UA = { 'user-agent': 'pocket-th-prices/1.0 (+https://pokedex-th.slammer.work)' };
 // Latest era only, by set code at the start of the group name ("SV07: Stellar Crown", "ME02: …", "M1L: Mega Brave").
 export const LATEST = { en: /^(SV|ME)\d|^SV: |^ME: |^SVE\b|^MEE\b/i, jp: /^(SV|M)\d|^SV-?P\b|^M-?P\b/i };
+const TCGTH = 'https://www.tcgthailand.com';
+const TCGTH_CATS = { th: /โปเกมอน/, jp: /Pok[eé]mon TCG \(Japanese\)/, en: /Pok[eé]mon TCG \(English\)/ };
 const SKIP = /code card|jumbo|oversized|deck box|sleeve|playmat|binder|portfolio/i;
 
 const ext = (p, key) => p.extendedData?.find((e) => e.name === key)?.value;
@@ -40,6 +44,56 @@ export function group(products, prices) {
 
 // "SV07: Stellar Crown" → "SV07"; used to pair Thai sets (TCGdex ids like "SV7a") with Japanese groups.
 export const code = (name) => (name.match(/^([A-Z]+-?[A-Z]?\d*[a-zA-Z]?)\s*:/)?.[1] || '').toUpperCase().replace(/^([A-Z]+)0+(\d)/, '$1$2');
+
+// Nuxt page payload (devalue format): a flat array where objects/arrays hold indexes into it, with
+// ["Reactive", i]-style wrappers. Returns the root value.
+export function revive(a) {
+  const memo = new Map();
+  const r = (i) => {
+    if (typeof i !== 'number' || i < 0) return i;
+    if (memo.has(i)) return memo.get(i);
+    const v = a[i];
+    if (Array.isArray(v)) {
+      if (typeof v[0] === 'string' && /^(Shallow)?(Reactive|Ref)$|^EmptyRef$|^Date$|^Set$|^Map$|^NuxtError$/.test(v[0])) {
+        const x = v[0] === 'Date' ? v[1] : r(v[1]);
+        memo.set(i, x);
+        return x;
+      }
+      const out = [];
+      memo.set(i, out);
+      for (const j of v) out.push(r(j));
+      return out;
+    }
+    if (v && typeof v === 'object') {
+      const out = {};
+      memo.set(i, out);
+      for (const [k, j] of Object.entries(v)) out[k] = r(j);
+      return out;
+    }
+    memo.set(i, v);
+    return v;
+  };
+  return r(0);
+}
+export const nuxt = (html) => {
+  const raw = html.match(/<script[^>]*id="__NUXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)?.[1];
+  return raw ? revive(JSON.parse(raw)) : null;
+};
+// TCG Thailand listings → sets keyed by set code, each item [id, name, englishName, number, rarity, lowestAskTHB, inStock, sealed].
+export function thaiMarket(products, setNames = {}) {
+  const sets = new Map();
+  for (const p of products) {
+    const price = +p.min_price;
+    if (!(price > 0)) continue;
+    const code = (p.set_code || '').trim() || 'อื่นๆ';
+    const s = sets.get(code) || sets.set(code, { code, name: setNames[code] || '', date: '', items: [] }).get(code);
+    const sealed = /^\[(กล่อง|ซอง|box|pack|bundle|deck|ชุด)/i.test(p.name) || /booster|box|bundle|elite trainer/i.test(p.alternative_name || '');
+    s.items.push([p.id, p.name, p.alternative_name || '', p.product_code || '', p.rarity && p.rarity !== '-' ? p.rarity : '', price, p.stock_quantity || 0, sealed ? 1 : 0]);
+    if ((p.sell_date || '') > s.date) s.date = p.sell_date.slice(0, 10);
+  }
+  for (const s of sets.values()) s.items.sort((a, b) => b[7] - a[7] || b[5] - a[5]);
+  return [...sets.values()].sort((a, b) => b.date.localeCompare(a.date) || a.code.localeCompare(b.code));
+}
 
 async function json(url) {
   for (let i = 0; i < 3; i++) {
@@ -91,6 +145,34 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
     console.log(`th: ${index.th.length} sets, ${index.th.filter((t) => t.jp).length} paired with a Japanese set`);
   } catch (e) { console.warn(`Thai sets skipped: ${e.message}`); }
+
+  // Thai market (TCG Thailand): every page of each Pokémon category, gently.
+  index.market = {};
+  try {
+    const page = async (q) => nuxt(await (await fetch(`${TCGTH}/product?${q}`, { headers: UA, signal: AbortSignal.timeout(30000) })).text());
+    const cats = Object.values((await page('page=1')).data).flatMap((v) => (Array.isArray(v?.data) ? v.data : [])).filter((c) => c?.id && c?.name);
+    for (const [lang, re] of Object.entries(TCGTH_CATS)) {
+      const cat = cats.find((c) => re.test(c.name));
+      if (!cat) { console.warn(`TCG Thailand: no category for ${lang}`); continue; }
+      if (lang === 'th') console.log(`TCG Thailand set fields: ${Object.keys(cat.sets?.[0] || {})}`);
+      const setNames = Object.fromEntries((cat.sets || []).filter((x) => x.code).map((x) => [x.code, x.name]));
+      const products = [];
+      for (let n = 1; n <= 400; n++) {
+        const d = (await page(`category_ids=${cat.id}&page=${n}`))?.data?.['product-listing'];
+        if (!d?.products?.length) break;
+        products.push(...d.products);
+        if (products.length >= d.total) break;
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+      const sets = thaiMarket(products, setNames);
+      mkdirSync(`${out}/market/${lang}`, { recursive: true });
+      index.market[lang] = sets.map((s, i) => {
+        writeFileSync(`${out}/market/${lang}/${i}.json`, JSON.stringify(s.items));
+        return { file: i, code: s.code, name: s.name, date: s.date, items: s.items.length };
+      });
+      console.log(`TCG Thailand ${lang} (${cat.name}): ${products.length} listings → ${sets.length} sets with prices`);
+    }
+  } catch (e) { console.warn(`TCG Thailand skipped: ${e.message}`); }
 
   writeFileSync(`${out}/index.json`, JSON.stringify(index));
   console.log(`done: en ${index.sets.en.length}, jp ${index.sets.jp.length}, th ${index.th.length}`);
