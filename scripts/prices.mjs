@@ -79,7 +79,7 @@ export const nuxt = (html) => {
   const raw = html.match(/<script[^>]*id="__NUXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)?.[1];
   return raw ? revive(JSON.parse(raw)) : null;
 };
-// TCG Thailand listings → sets keyed by set code, each item [id, name, englishName, number, rarity, lowestAskTHB, inStock, sealed].
+// TCG Thailand listings → sets keyed by set code, each item [id, name, englishName, number, rarity, lowestAskTHB, inStock, sealed, image].
 export function thaiMarket(products, setNames = {}) {
   const sets = new Map();
   for (const p of products) {
@@ -88,7 +88,8 @@ export function thaiMarket(products, setNames = {}) {
     const code = (p.set_code || '').trim() || 'อื่นๆ';
     const s = sets.get(code) || sets.set(code, { code, name: setNames[code] || '', date: '', items: [] }).get(code);
     const sealed = /^\[(กล่อง|ซอง|box|pack|bundle|deck|ชุด)/i.test(p.name) || /booster|box|bundle|elite trainer/i.test(p.alternative_name || '');
-    s.items.push([p.id, p.name, p.alternative_name || '', p.product_code || '', p.rarity && p.rarity !== '-' ? p.rarity : '', price, p.stock_quantity || 0, sealed ? 1 : 0]);
+    const img = [p.image_urls].flat().find((u) => typeof u === 'string' && u.startsWith('https://')) || '';
+    s.items.push([p.id, p.name, p.alternative_name || '', p.product_code || '', p.rarity && p.rarity !== '-' ? p.rarity : '', price, p.stock_quantity || 0, sealed ? 1 : 0, img]);
     if ((p.sell_date || '') > s.date) s.date = p.sell_date.slice(0, 10);
   }
   for (const s of sets.values()) s.items.sort((a, b) => b[7] - a[7] || b[5] - a[5]);

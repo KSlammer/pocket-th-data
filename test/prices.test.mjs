@@ -31,11 +31,11 @@ assert.deepEqual(root, { data: { list: ['x', 'x'], n: 7 } });
 
 // TCG Thailand listings: grouped by set, sealed first then by price, unpriced dropped.
 const m = thaiMarket([
-  { id: 'a', name: 'พิคาชู ex', alternative_name: 'Pikachu ex', set_code: 'MA6 T', product_code: '036/130', rarity: 'RR', min_price: '100.00', stock_quantity: 3, sell_date: '2026-09-16T00:00:00+07:00' },
+  { id: 'a', name: 'พิคาชู ex', alternative_name: 'Pikachu ex', set_code: 'MA6 T', product_code: '036/130', rarity: 'RR', min_price: '100.00', stock_quantity: 3, sell_date: '2026-09-16T00:00:00+07:00', image_urls: ['https://img.test/a.webp'] },
   { id: 'b', name: '[กล่อง] 30th Celebration', set_code: 'MA6 T', rarity: '-', min_price: '2090.00', stock_quantity: 1, sell_date: '2026-09-16T00:00:00+07:00' },
   { id: 'c', name: 'มิวทู ex', set_code: 'MA6 T', min_price: '0.00' },
   { id: 'd', name: 'Old', set_code: 'SV1', min_price: '20.00', sell_date: '2024-01-01T00:00:00+07:00' },
 ], { 'MA6 T': '30th Celebration' });
 assert.deepEqual(m.map((s) => [s.code, s.name, s.date, s.items.map((i) => i[0])]), [['MA6 T', '30th Celebration', '2026-09-16', ['b', 'a']], ['SV1', '', '2024-01-01', ['d']]]);
-assert.deepEqual(m[0].items[1], ['a', 'พิคาชู ex', 'Pikachu ex', '036/130', 'RR', 100, 3, 0]);
+assert.deepEqual(m[0].items[1], ['a', 'พิคาชู ex', 'Pikachu ex', '036/130', 'RR', 100, 3, 0, 'https://img.test/a.webp']);
 console.log('prices ok');
