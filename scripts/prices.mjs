@@ -79,21 +79,21 @@ export const nuxt = (html) => {
   const raw = html.match(/<script[^>]*id="__NUXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)?.[1];
   return raw ? revive(JSON.parse(raw)) : null;
 };
-// TCG Thailand listings → sets keyed by set code, each item [id, name, englishName, number, rarity, lowestAskTHB, inStock, sealed, image].
-export function thaiMarket(products, setNames = {}) {
-  const sets = new Map();
+// One TCG Thailand set's listings → { date, items } with items [id, name, englishName, number, rarity, lowestAskTHB,
+// inStock, sealed, image], sealed first then by price; listings without a price are dropped.
+export function marketSet(products) {
+  let date = '';
+  const items = [];
   for (const p of products) {
     const price = +p.min_price;
     if (!(price > 0)) continue;
-    const code = (p.set_code || '').trim() || 'อื่นๆ';
-    const s = sets.get(code) || sets.set(code, { code, name: setNames[code] || '', date: '', items: [] }).get(code);
     const sealed = /^\[(กล่อง|ซอง|box|pack|bundle|deck|ชุด)/i.test(p.name) || /booster|box|bundle|elite trainer/i.test(p.alternative_name || '');
     const img = [p.image_urls].flat().find((u) => typeof u === 'string' && u.startsWith('https://')) || '';
-    s.items.push([p.id, p.name, p.alternative_name || '', p.product_code || '', p.rarity && p.rarity !== '-' ? p.rarity : '', price, p.stock_quantity || 0, sealed ? 1 : 0, img]);
-    if ((p.sell_date || '') > s.date) s.date = p.sell_date.slice(0, 10);
+    items.push([p.id, p.name, p.alternative_name || '', p.product_code || '', p.rarity && p.rarity !== '-' ? p.rarity : '', price, p.stock_quantity || 0, sealed ? 1 : 0, img]);
+    if ((p.sell_date || '') > date) date = p.sell_date.slice(0, 10);
   }
-  for (const s of sets.values()) s.items.sort((a, b) => b[7] - a[7] || b[5] - a[5]);
-  return [...sets.values()].sort((a, b) => b.date.localeCompare(a.date) || a.code.localeCompare(b.code));
+  items.sort((a, b) => b[7] - a[7] || b[5] - a[5]);
+  return { date, items };
 }
 
 async function json(url) {
@@ -147,31 +147,45 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(`th: ${index.th.length} sets, ${index.th.filter((t) => t.jp).length} paired with a Japanese set`);
   } catch (e) { console.warn(`Thai sets skipped: ${e.message}`); }
 
-  // Thai market (TCG Thailand): every page of each Pokémon category, gently.
+  // Thai market (TCG Thailand), set by set: a whole-category listing stops after a few pages, and a page sometimes
+  // comes back empty on the first try, so each empty page is retried once. One request every 1.5 s.
   index.market = {};
   try {
-    const page = async (q) => nuxt(await (await fetch(`${TCGTH}/product?${q}`, { headers: UA, signal: AbortSignal.timeout(30000) })).text());
-    const cats = Object.values((await page('page=1')).data).flatMap((v) => (Array.isArray(v?.data) ? v.data : [])).filter((c) => c?.id && c?.name);
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const listing = async (q) => {
+      for (let t = 0; t < 2; t++) {
+        const res = await fetch(`${TCGTH}/product?${q}`, { headers: UA, signal: AbortSignal.timeout(30000) }).catch(() => null);
+        const d = res?.ok ? nuxt(await res.text())?.data : null;
+        await sleep(1500);
+        if (d?.['product-listing']?.total || t) return d;
+      }
+    };
+    const home = await listing('page=1');
+    const cats = Object.values(home || {}).flatMap((v) => (Array.isArray(v?.data) ? v.data : [])).filter((c) => c?.id && c?.name);
     for (const [lang, re] of Object.entries(TCGTH_CATS)) {
       const cat = cats.find((c) => re.test(c.name));
       if (!cat) { console.warn(`TCG Thailand: no category for ${lang}`); continue; }
-      if (lang === 'th') console.log(`TCG Thailand set fields: ${Object.keys(cat.sets?.[0] || {})}`);
-      const setNames = Object.fromEntries((cat.sets || []).filter((x) => x.code).map((x) => [x.code, x.name]));
-      const products = [];
-      for (let n = 1; n <= 400; n++) {
-        const d = (await page(`category_ids=${cat.id}&page=${n}`))?.data?.['product-listing'];
-        if (!d?.products?.length) break;
-        products.push(...d.products);
-        if (products.length >= d.total) break;
-        await new Promise((r) => setTimeout(r, 1500));
-      }
-      const sets = thaiMarket(products, setNames);
       mkdirSync(`${out}/market/${lang}`, { recursive: true });
+      const sets = [];
+      let listings = 0;
+      for (const set of cat.sets || []) {
+        const products = [];
+        for (let n = 1; n <= 50; n++) {
+          const l = (await listing(`category_ids=${cat.id}&set_ids=${set.id}&page=${n}`))?.['product-listing'];
+          if (!l?.products?.length) break;
+          products.push(...l.products);
+          if (products.length >= l.total) break;
+        }
+        listings += products.length;
+        const m = marketSet(products);
+        if (m.items.length) sets.push({ name: set.name, ...m });
+      }
+      sets.sort((a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name));
       index.market[lang] = sets.map((s, i) => {
         writeFileSync(`${out}/market/${lang}/${i}.json`, JSON.stringify(s.items));
-        return { file: i, code: s.code, name: s.name, date: s.date, items: s.items.length };
+        return { file: i, name: s.name, date: s.date, items: s.items.length };
       });
-      console.log(`TCG Thailand ${lang} (${cat.name}): ${products.length} listings → ${sets.length} sets with prices`);
+      console.log(`TCG Thailand ${lang} (${cat.name}): ${cat.sets?.length} sets, ${listings} listings → ${sets.length} sets with prices, ${sets.reduce((a, s) => a + s.items.length, 0)} priced items`);
     }
   } catch (e) { console.warn(`TCG Thailand skipped: ${e.message}`); }
 
