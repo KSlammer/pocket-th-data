@@ -156,17 +156,17 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(`th: ${index.th.length} sets, ${index.th.filter((t) => t.jp).length} paired with a Japanese set`);
   } catch (e) { console.warn(`Thai sets skipped: ${e.message}`); }
 
-  // Thai market (TCG Thailand), set by set: a whole-category listing stops after a few pages, and a page sometimes
-  // comes back empty on the first try, so each empty page is retried once. One request every 1.5 s.
+  // Thai market (TCG Thailand), set by set: a whole-category listing stops after a few pages, and pages sometimes
+  // come back empty, so an empty page is retried up to twice more after a longer pause. One request every 1.5 s or slower.
   index.market = {};
   try {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const listing = async (q) => {
-      for (let t = 0; t < 2; t++) {
+      for (let t = 0; t < 3; t++) {
         const res = await fetch(`${TCGTH}/product?${q}`, { headers: UA, signal: AbortSignal.timeout(30000) }).catch(() => null);
         const d = res?.ok ? nuxt(await res.text())?.data : null;
-        await sleep(1500);
-        if (d?.['product-listing']?.total || t) return d;
+        await sleep(t ? 4000 : 1500);
+        if (d?.['product-listing']?.total || t === 2) return d;
       }
     };
     const home = await listing('page=1');
