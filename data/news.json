@@ -1,6 +1,25 @@
 {
  "items": [
   {
+   "title": "dark mode when?",
+   "link": "https://www.reddit.com/r/PTCGP/comments/1xgdg6v/dark_mode_when/",
+   "date": "2026-10-27T00:01:01.000Z",
+   "source": "r/PTCGP",
+   "kind": "community",
+   "img": "https://preview.redd.it/vvw984irhwxh1.jpeg?width=640&crop=smart&auto=webp&s=b1bf23f4472f779bd94af9a6b8120cb49bc75c3c",
+   "th": "ดาร์กโหมดมาเมื่อไหร่?"
+  },
+  {
+   "title": "'Pokémon TCG Pocket' is giving away a free immersive Pikachu ex card — how to get it",
+   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxOOXRlbi1hMXlFZXRUUElFVzkwZFZwekEyXy1zZDJLVlJyeFZYNTdKcnN6TTNSOTdpcllBeW80ODl2c3lqTGtEZHZoTGt2eW1jbmw0dmpJcEhwdy1TazBqYzc3djZ2U09zT2J1cnA4RWZPbGRoWHBYd2ZJaGlEcjk3V2NSdlM?oc=5",
+   "date": "2026-10-26T21:21:40.000Z",
+   "source": "Mashable",
+   "kind": "news",
+   "img": "https://helios-i.mashable.com/imagery/articles/04N0AROYYEdWq1y6LGtLQeW/hero-image.fill.size_1200x675.v1792509089.jpg",
+   "th": "'Pokémon TCG Pocket' แจกฟรีการ์ด Pikachu ex immersive — วิธีรับ",
+   "url": "https://mashable.com/life/pokemon-tcg-pocket-free-pikachu-ex-card-how-to-claim"
+  },
+  {
    "title": "Pokémon TCG Pocket Adds Dual-Type Cards With Dual Fusion Expansion",
    "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNc3RjQWw3VXdMUllKVU0tUmxWbEdjdno1c3YyNXJzU0t2Mnd6UDI1T0RzZ2lqcVVRMC1yRllWNUNQSGFtZWd1SldZWXNjeldLSjQ2VEUyRnZLLVV5bzZkNEtXUUdzUHNaR09WQU1sck1VUUV1NTYxbFpqSHFqUllBaXpQNG1KUnhOM1JTcmxqX0gtZG9qSFlDRW5tNTNYR2s?oc=5",
    "date": "2026-10-26T02:32:10.000Z",
@@ -445,14 +464,14 @@
    "url": "https://www.pokebeach.com/2026/10/dual-fusion-set-revealed-for-pocket-featuring-dual-type-pokemon"
   },
   {
-   "title": "'Pokémon TCG Pocket' is giving away a free immersive Pikachu ex card — how to get it",
-   "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxPSjRSbmdsOENtSlFuWUktaW44TWpoVVhGYTViaUVPQnNueXV1YmlJWTJZTVg2dkpYTjM0YWdGSE50d0I2X2VjMFNZTXVBV19VaG5KaURPYnE1Qng3OFItdEcyS3U5S0U5Z2FQeDJtZFpaTUphTURwN1FJcUZ2YXgtTzRUbzRCUQ?oc=5",
-   "date": "2026-10-20T15:12:00.000Z",
-   "source": "Yahoo Tech",
+   "title": "Pokémon TCG Pocket Adds Pika Pika! Pikachu Missions With Exclusive Pikachu ex Immersive Card",
+   "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1lZFZQMWFrVkFTdXprX1NMTmNZUzBxcjE5Z0RlQjBPcks4dW9UOGJJX1lsQWJkNVA1c245TU1tQ0FUZmVRSGdXVklpWnpaVHZCamtnRDNvVnZiU0hSODB4eTMzcVpsRGowMXBIYlg1QUk2TmFQdHJqbFZHZVA?oc=5",
+   "date": "2026-10-20T15:09:25.000Z",
+   "source": "OTIA Sports",
    "kind": "news",
-   "img": "https://s.yimg.com/lo/mysterio/api/cf03ed833d231a09cf1cefd86f75d880bf31893f4b15ed16b67e8f9199732465/lightyear_networkapi/resizefill_w1200%3Bquality_80%3Bformat_webp/https%3A%2F%2Fmedia.zenfs.com%2Fen%2Fmashable_articles_863%2F0f0041e1f2dfcc1e194ec92ae1fa4361.jpg",
-   "th": "'Pokémon TCG Pocket' แจกการ์ด Pikachu ex Immersive ฟรี — วิธีรับ",
-   "url": "https://tech.yahoo.com/gaming/articles/pok-mon-tcg-pocket-giving-151200096.html"
+   "img": "https://otia.com/uploads/posts/discover/9224657a084030c05e55091faba7c42ba5320a7b814d5f97221a4da5b64b2f7f.webp",
+   "th": "Pokémon TCG Pocket เพิ่มภารกิจ Pika Pika! Pikachu พร้อมการ์ด Pikachu ex immersive พิเศษ",
+   "url": "https://otia.com/news/pokemon-tcg-pocket-pika-pika-pikachu-missions-2026"
   },
   {
    "title": "Pokémon TCG Pocket Dual Fusion Launch Details",
@@ -751,24 +770,6 @@
    "kind": "community",
    "img": "https://preview.redd.it/05xz431933wh1.jpeg?width=640&crop=smart&auto=webp&s=b080cc5df80f922d704a9dfcaf2355805551345d",
    "th": "รู้สึกยังไงเมื่อโดน Cyrus"
-  },
-  {
-   "title": "Why do these even exist?",
-   "link": "https://www.reddit.com/r/PTCGP/comments/1x8ful9/why_do_these_even_exist/",
-   "date": "2026-10-17T17:21:44.000Z",
-   "source": "r/PTCGP",
-   "kind": "community",
-   "img": "https://preview.redd.it/7u28vvbba2wh1.png?width=640&crop=smart&auto=webp&s=4e46cbad3beff1343bc23bf7bbab407e1ad3acd7",
-   "th": "ทำไมการ์ดเหล่านี้ถึงมีอยู่จริง?"
-  },
-  {
-   "title": "18-0 With FatAssic Park",
-   "link": "https://www.reddit.com/r/PTCGP/comments/1x8esg3/180_with_fatassic_park/",
-   "date": "2026-10-17T16:39:22.000Z",
-   "source": "r/PTCGP",
-   "kind": "community",
-   "img": "https://preview.redd.it/f7qmjrjr22wh1.jpg?width=140&height=140&crop=1:1,smart&auto=webp&s=1f348970d292be08c439b95a191d1a5b2f20ac1d",
-   "th": "18-0 กับ FatAssic Park"
   }
  ]
 }
