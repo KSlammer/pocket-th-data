@@ -1,0 +1,32 @@
+name: prices
+# Daily physical-card market prices → the `prices` branch (force-pushed single commit, so daily churn adds no history).
+# tcgcsv refreshes TCGplayer data around 20:00 UTC; this runs after it. Changing the script runs it once too.
+on:
+  schedule:
+    - cron: '37 20 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['scripts/prices.mjs', '.github/workflows/prices.yml']
+permissions:
+  contents: write
+concurrency: prices
+jobs:
+  prices:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - run: node test/prices.test.mjs
+      - run: node scripts/prices.mjs
+      - name: Publish to the prices branch
+        run: |
+          cd out
+          git init -q -b prices
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -qm "Prices $(date -u +%F)"
+          git push -fq "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" prices
