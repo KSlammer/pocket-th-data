@@ -170,8 +170,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const listing = async (q) => {
       for (let t = 0; t < 3; t++) {
-        const res = await fetch(`${TCGTH}/product?${q}`, { headers: UA, signal: AbortSignal.timeout(30000) }).catch(() => null);
-        const d = res?.ok ? nuxt(await res.text())?.data : null;
+        // The timeout also covers reading the body, so a slow page is just an empty try, never a crash of the whole crawl.
+        const d = await fetch(`${TCGTH}/product?${q}`, { headers: UA, signal: AbortSignal.timeout(30000) })
+          .then(async (res) => (res.ok ? nuxt(await res.text())?.data : null)).catch(() => null);
         await sleep(t ? 4000 : 1500);
         if (d?.['product-listing']?.total || t === 2) return d;
       }
