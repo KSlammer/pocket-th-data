@@ -21,8 +21,9 @@ const TCGTH_CATS = { th: /โปเกมอน/, jp: /Pok[eé]mon TCG \(Japanes
 const SKIP = /code card|jumbo|oversized|deck box|sleeve|playmat|binder|portfolio/i;
 
 const ext = (p, key) => p.extendedData?.find((e) => e.name === key)?.value;
-// A product with a card number is a single card; everything else in a set group is sealed (pack, box, ETB, bundle…).
-export const isCard = (p) => !!ext(p, 'Number');
+// Single cards carry card fields (old Japanese sets have no Number, but do have Rarity / CardType / HP);
+// everything else in a set group is sealed (pack, box, ETB, bundle…), which has at most a Description.
+export const isCard = (p) => ['Number', 'Rarity', 'CardType', 'HP'].some((k) => ext(p, k));
 // Normalised names for matching TCGplayer and Cardmarket sealed products ("Delta Reign Booster Box" on both).
 export const norm = (s) => s.toLowerCase().replace(/pok[eé]mon|tcg|[^\p{L}\p{N}]+/gu, ' ').replace(/\s+/g, ' ').trim();
 
@@ -36,7 +37,7 @@ export function group(products, prices) {
   const cards = [], sealed = [];
   for (const p of products) {
     const pr = (by.get(p.productId) || []).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
-    if (isCard(p)) cards.push([p.productId, p.name, ext(p, 'Number'), ext(p, 'Rarity') || '', pr]);
+    if (isCard(p)) cards.push([p.productId, p.name, ext(p, 'Number') || '', ext(p, 'Rarity') || '', pr]);
     else if (!SKIP.test(p.name)) sealed.push([p.productId, p.name, pr]);
   }
   cards.sort((a, b) => (b[4][0]?.[1] ?? 0) - (a[4][0]?.[1] ?? 0));

@@ -7,17 +7,23 @@ const products = [
   { productId: 2, name: 'Delta Reign Booster Box', extendedData: [] },
   { productId: 3, name: 'Delta Reign Code Card', extendedData: [] }, // skipped
   { productId: 4, name: 'Pikachu', extendedData: [{ name: 'Number', value: '001' }] },
+  // Old Japanese sets: single cards without a Number are still cards; a box with only a Description is sealed.
+  { productId: 5, name: 'Shining Gyarados', extendedData: [{ name: 'Rarity', value: 'Holo Rare' }, { name: 'CardType', value: 'Water' }] },
+  { productId: 6, name: 'Storm Emeralda Booster Pack', extendedData: [{ name: 'Description', value: '5 cards' }] },
 ];
 const prices = [
   { productId: 1, subTypeName: 'Normal', marketPrice: 2.5, lowPrice: 2 },
   { productId: 1, subTypeName: 'Holofoil', marketPrice: 9, lowPrice: 8 },
   { productId: 2, subTypeName: 'Normal', marketPrice: 235.91, lowPrice: 230 },
   { productId: 4, subTypeName: 'Normal', marketPrice: null, midPrice: null },
+  { productId: 5, subTypeName: 'Holofoil', marketPrice: 40, lowPrice: 35 },
+  { productId: 6, subTypeName: 'Normal', marketPrice: 3, lowPrice: 2 },
 ];
 const { cards, sealed } = group(products, prices);
-assert.deepEqual(cards[0], [1, 'Pikachu ex', '057/191', 'Double Rare', [['Holofoil', 9, 8], ['Normal', 2.5, 2]]]);
-assert.deepEqual(cards[1], [4, 'Pikachu', '001', '', []]); // no price yet, still listed, sorted last
-assert.deepEqual(sealed, [[2, 'Delta Reign Booster Box', [['Normal', 235.91, 230]]]]);
+assert.deepEqual(cards[0], [5, 'Shining Gyarados', '', 'Holo Rare', [['Holofoil', 40, 35]]]);
+assert.deepEqual(cards[1], [1, 'Pikachu ex', '057/191', 'Double Rare', [['Holofoil', 9, 8], ['Normal', 2.5, 2]]]);
+assert.deepEqual(cards[2], [4, 'Pikachu', '001', '', []]); // no price yet, still listed, sorted last
+assert.deepEqual(sealed, [[2, 'Delta Reign Booster Box', [['Normal', 235.91, 230]]], [6, 'Storm Emeralda Booster Pack', [['Normal', 3, 2]]]]);
 
 assert.equal(norm('Pokémon TCG: Delta Reign — Booster Box'), norm('Delta Reign Booster Box'));
 assert.equal(code('SV07: Stellar Crown'), 'SV7');
