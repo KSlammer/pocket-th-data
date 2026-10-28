@@ -178,26 +178,56 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         if (d?.['product-listing']?.total || t === 2) return d;
       }
     };
+    const PREV = 'https://raw.githubusercontent.com/KSlammer/pocket-th-data/prices/prices';
+    const previous = await fetch(`${PREV}/index.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
     const home = await listing('page=1');
     const cats = Object.values(home || {}).flatMap((v) => (Array.isArray(v?.data) ? v.data : [])).filter((c) => c?.id && c?.name);
     for (const [lang, re] of Object.entries(TCGTH_CATS)) {
       const cat = cats.find((c) => re.test(c.name));
       if (!cat) { console.warn(`TCG Thailand: no category for ${lang}`); continue; }
       mkdirSync(`${out}/market/${lang}`, { recursive: true });
-      const sets = [];
-      let listings = 0;
-      for (const set of cat.sets || []) {
+      // A set is complete when every listing its first page announces came back. The site often answers a set with an
+      // empty page for a while, so incomplete sets get two more passes, a minute apart; a set that never comes back
+      // keeps yesterday's listings (from the published prices branch) rather than vanishing.
+      const crawl = async (set) => {
         const products = [];
+        let total = 0;
         for (let n = 1; n <= 50; n++) {
           const l = (await listing(`category_ids=${cat.id}&set_ids=${set.id}&page=${n}`))?.['product-listing'];
           if (!l?.products?.length) break;
+          total = l.total;
           products.push(...l.products);
-          if (products.length >= l.total) break;
+          if (products.length >= total) break;
         }
+        return { products, done: total > 0 && products.length >= total };
+      };
+      const got = new Map();
+      let pending = cat.sets || [];
+      for (let pass = 0; pass < 3 && pending.length; pass++) {
+        if (pass) await sleep(60000);
+        const next = [];
+        for (const set of pending) {
+          const r = await crawl(set);
+          if (r.products.length > (got.get(set.id)?.length ?? 0)) got.set(set.id, r.products);
+          if (!r.done) next.push(set);
+        }
+        console.log(`TCG Thailand ${lang} pass ${pass + 1}: ${pending.length - next.length}/${pending.length} sets complete`);
+        pending = next;
+      }
+      const sets = [];
+      let listings = 0, stale = 0;
+      for (const set of cat.sets || []) {
+        const products = got.get(set.id) || [];
         listings += products.length;
         const m = marketSet(products);
+        const old = previous?.market?.[lang]?.find((x) => x.name === set.name);
+        if (!m.items.length && old) {
+          const items = await fetch(`${PREV}/market/${lang}/${old.file}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+          if (items?.length) { sets.push({ name: set.name, date: old.date, items }); stale++; continue; }
+        }
         if (m.items.length) sets.push({ name: set.name, ...m });
       }
+      if (stale) console.log(`TCG Thailand ${lang}: ${stale} sets kept from the previous run`);
       sets.sort((a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name));
       index.market[lang] = sets.map((s, i) => {
         writeFileSync(`${out}/market/${lang}/${i}.json`, JSON.stringify(s.items));
