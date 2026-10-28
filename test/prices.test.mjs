@@ -44,4 +44,10 @@ const m = marketSet([
 assert.equal(m.date, '2026-09-16');
 assert.deepEqual(m.items.map((i) => i[0]), ['b', 'a']);
 assert.deepEqual(m.items[1], ['a', 'พิคาชู ex', 'Pikachu ex', '036/130', 'RR', 100, 3, 0, 'https://img.test/a.webp']);
+// Cards whose names mention boxes/boosters are not sealed products.
+const sealedOf = (name, alt = '') => marketSet([{ id: 'x', name, alternative_name: alt, min_price: '1' }]).items[0][7];
+assert.equal(sealedOf('[ซอง] การ์ดโปรโม อัคคีสีคราม'), 1);
+assert.equal(sealedOf('Destined Rivals', 'Destined Rivals Booster Box'), 1);
+assert.equal(sealedOf('กล่องตกใจ', 'Surprise Box'), 0);
+assert.equal(sealedOf('บูสต์เอนเนอร์จี้ อนาคต', 'Future Booster Energy Capsule'), 0);
 console.log('prices ok');

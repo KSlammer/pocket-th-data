@@ -90,7 +90,9 @@ export function marketSet(products) {
   for (const p of products) {
     const price = +p.min_price;
     if (!(price > 0)) continue;
-    const sealed = /^\[(กล่อง|ซอง|box|pack|bundle|deck|ชุด)/i.test(p.name) || /booster|box|bundle|elite trainer/i.test(p.alternative_name || '');
+    // Sealed listings are named "[กล่อง] …" / "[ซอง] …"; a few only say so in the English name. Cards like
+    // "Booster Energy Capsule" or the trainer "กล่องตกใจ" must not count.
+    const sealed = /^\[(กล่อง|ซอง|box|pack|bundle|deck|ชุด)/i.test(p.name) || /booster (box|pack|bundle)|elite trainer box|\bbundle\b|starter (deck|set)|deck set/i.test(p.alternative_name || '');
     const img = [p.image_urls].flat().find((u) => typeof u === 'string' && u.startsWith('https://')) || '';
     items.push([p.id, p.name, p.alternative_name || '', p.product_code || '', p.rarity && p.rarity !== '-' ? p.rarity : '', price, p.stock_quantity || 0, sealed ? 1 : 0, img]);
     if ((p.sell_date || '') > date) date = p.sell_date.slice(0, 10);
@@ -203,13 +205,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       };
       const got = new Map();
       let pending = cat.sets || [];
+      const done = new Set();
       for (let pass = 0; pass < 3 && pending.length; pass++) {
         if (pass) await sleep(60000);
         const next = [];
         for (const set of pending) {
           const r = await crawl(set);
           if (r.products.length > (got.get(set.id)?.length ?? 0)) got.set(set.id, r.products);
-          if (!r.done) next.push(set);
+          if (r.done) done.add(set.id); else next.push(set);
         }
         console.log(`TCG Thailand ${lang} pass ${pass + 1}: ${pending.length - next.length}/${pending.length} sets complete`);
         pending = next;
@@ -220,14 +223,17 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         const products = got.get(set.id) || [];
         listings += products.length;
         const m = marketSet(products);
-        const old = previous?.market?.[lang]?.find((x) => x.name === set.name);
-        if (!m.items.length && old) {
+        // Incomplete today: add yesterday's listings that didn't come back, so coverage builds up over the days.
+        const old = !done.has(set.id) && previous?.market?.[lang]?.find((x) => x.name === set.name);
+        if (old) {
           const items = await fetch(`${PREV}/market/${lang}/${old.file}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-          if (items?.length) { sets.push({ name: set.name, date: old.date, items }); stale++; continue; }
+          const have = new Set(m.items.map((i) => i[0]));
+          const add = (items || []).filter((i) => !have.has(i[0]));
+          if (add.length) { m.items.push(...add); m.items.sort((a, b) => b[7] - a[7] || b[5] - a[5]); m.date ||= old.date; stale++; }
         }
         if (m.items.length) sets.push({ name: set.name, ...m });
       }
-      if (stale) console.log(`TCG Thailand ${lang}: ${stale} sets kept from the previous run`);
+      if (stale) console.log(`TCG Thailand ${lang}: ${stale} incomplete sets topped up from the previous run`);
       sets.sort((a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name));
       index.market[lang] = sets.map((s, i) => {
         writeFileSync(`${out}/market/${lang}/${i}.json`, JSON.stringify(s.items));
