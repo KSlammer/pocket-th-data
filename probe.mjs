@@ -1,14 +1,8 @@
 import { nuxt } from './scripts/prices.mjs';
 const UA = { 'user-agent': 'pocket-th-prices/1.0 (+https://pokedex-th.slammer.work)' };
 const j = (u) => fetch(u, { headers: UA }).then((r) => r.json());
-for (const g of [23720, 24791, 24499]) {
-  const p = (await j(`https://tcgcsv.com/tcgplayer/85/${g}/products`)).results;
-  const keys = {}; for (const x of p) for (const e of x.extendedData || []) keys[e.name] = (keys[e.name] || 0) + 1;
-  console.log('JP', g, p.length, JSON.stringify(keys));
-  console.log('  no-number:', p.filter((x) => !(x.extendedData || []).some((e) => e.name === 'Number')).slice(0, 12).map((x) => `${x.name} [${(x.extendedData || []).map((e) => e.name).join(',')}]`).join(' | '));
-}
 const T = 'https://www.tcgthailand.com';
-const page = async (q) => { for (let t = 0; t < 4; t++) { const d = await fetch(`${T}/product?${q}`, { headers: UA, signal: AbortSignal.timeout(40000) }).then(async (r) => r.ok ? nuxt(await r.text())?.data : null).catch(() => null); if (d?.['product-listing']?.total) return d; await new Promise((r) => setTimeout(r, 5000)); } return null; };
+const page = async (q) => { for (let t = 0; t < 4; t++) { const d = await fetch(`${T}/product?${q}`, { headers: UA, signal: AbortSignal.timeout(40000) }).then(async (r) => r.ok ? nuxt(await r.text())?.data : null).catch(() => null); if (d?.['product-listing']?.total || t === 3) return d; await new Promise((r) => setTimeout(r, 5000)); } return null; };
 const home = await page('page=1');
 console.log('home keys', Object.keys(home || {}));
 const cats = Object.values(home || {}).flatMap((v) => (Array.isArray(v?.data) ? v.data : [])).filter((c) => c?.id && c?.name);
