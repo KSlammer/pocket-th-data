@@ -7,6 +7,7 @@
 //              automated collection, so SASOM is only linked.) Thai sets from TCGdex keep a Japanese reference price.
 // Output goes to out/prices/ and is force-pushed to the `prices` branch (one commit, no history: prices change daily).
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { graded } from './graded.mjs';
 import { pathToFileURL } from 'node:url';
 
 const TCGCSV = 'https://tcgcsv.com/tcgplayer';
@@ -123,6 +124,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const index = { updated: new Date().toISOString(), fx: { THB: fx.THB, EUR: fx.EUR, JPY: fx.JPY }, sets: { en: [], jp: [] }, th: [] };
   // Every sealed product per language in one file, for the "all packs/boxes" view: [groupId, set, id, name, prices, cardmarket?]
   const sealedAll = { en: [], jp: [] };
+  // The most valuable cards of each language get graded prices looked up on eBay (one search each).
+  const TOP = { en: 400, jp: 200 }, valuable = { en: [], jp: [] };
   mkdirSync(`${out}/sealed`, { recursive: true });
   for (const [lang, cat] of [['en', 3], ['jp', 85]]) {
     const groups = (await json(`${TCGCSV}/${cat}/groups`)).results;
@@ -133,6 +136,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const { cards, sealed } = group(products.results, prices.results);
       if (lang === 'en') for (const s of sealed) { const m = cm.get(norm(s[1])); sealedN++; if (m) { s.push(m); matched++; } }
       writeFileSync(`${out}/${lang}/${g.groupId}.json`, JSON.stringify({ name: g.name, cards, sealed }));
+      for (const [id, name, number, , p] of cards) {
+        const market = Math.max(0, ...p.map((x) => x[1] ?? 0));
+        if (market >= 20) valuable[lang].push({ lang, id, name, number, set: g.name, market });
+      }
       index.sets[lang].push({ id: g.groupId, name: g.name, code: code(g.name), date: releaseDate(g), cards: cards.length, sealed: sealed.length });
       for (const x of sealed) if (x[2].length) sealedAll[lang].push([g.groupId, g.name, ...x]);
       await new Promise((r) => setTimeout(r, 300)); // be gentle with tcgcsv
@@ -199,6 +206,20 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       console.log(`TCG Thailand ${lang} (${cat.name}): ${cat.sets?.length} sets, ${listings} listings → ${sets.length} sets with prices, ${sets.reduce((a, s) => a + s.items.length, 0)} priced items`);
     }
   } catch (e) { console.warn(`TCG Thailand skipped: ${e.message}`); }
+
+  // Graded prices (eBay asking prices), only when the eBay keys are set; [id, name, number, set, raw market USD, grades].
+  if (process.env.EBAY_CLIENT_ID && process.env.EBAY_CLIENT_SECRET) {
+    try {
+      mkdirSync(`${out}/graded`, { recursive: true });
+      index.graded = {};
+      for (const lang of ['en', 'jp']) {
+        const top = valuable[lang].sort((a, b) => b.market - a.market).slice(0, TOP[lang]);
+        const rows = await graded(top, { id: process.env.EBAY_CLIENT_ID, secret: process.env.EBAY_CLIENT_SECRET });
+        writeFileSync(`${out}/graded/${lang}.json`, JSON.stringify(rows));
+        index.graded[lang] = rows.length;
+      }
+    } catch (e) { console.warn(`Graded prices skipped: ${e.message}`); delete index.graded; }
+  } else console.log('Graded prices skipped: EBAY_CLIENT_ID / EBAY_CLIENT_SECRET not set');
 
   writeFileSync(`${out}/index.json`, JSON.stringify(index));
   console.log(`done: en ${index.sets.en.length}, jp ${index.sets.jp.length}, th ${index.th.length}`);

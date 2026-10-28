@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['scripts/prices.mjs', '.github/workflows/prices.yml']
+    paths: ['scripts/prices.mjs', 'scripts/graded.mjs', '.github/workflows/prices.yml']
 permissions:
   contents: write
 concurrency: prices
@@ -19,8 +19,11 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
-      - run: node test/prices.test.mjs
+      - run: node test/prices.test.mjs && node test/graded.test.mjs
       - run: node scripts/prices.mjs
+        env:
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
       - name: Publish to the prices branch
         run: |
           cd out
