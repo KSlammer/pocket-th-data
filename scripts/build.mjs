@@ -69,14 +69,17 @@ const cards = src.map((c) => ({
   text: text(c.card_text),
   artist: c.artist,
   // Image URLs follow one pattern; only keep ones that don't, so the app can derive the rest.
-  // Interim cards have none yet: the app shows a placeholder.
-  img: c.source ? '/card-pending.svg' : c.image === `${IMG}/${c.set_code}/${c.id.split('-')[1]}.webp` ? null : c.image,
-  src: c.source, // "limitless" = interim text until the card data package has this set
+  img: c.image === `${IMG}/${c.set_code}/${c.id.split('-')[1]}.webp` ? null : c.image,
+  src: c.source, // "limitless" = interim card without an image: translated ahead of time, not published
 }));
+
+// Interim cards are translated with everything else (so the text is ready) but only published once the set
+// arrives in the package with images; until then the set stays "coming soon".
+const published = cards.filter((c) => !c.src);
 
 // Group prints of the same card (same name and rules text); `g` links versions, `dup` marks all but the first.
 const groups = new Map();
-for (const c of cards) {
+for (const c of published) {
   const key = JSON.stringify([c.name, c.hp, c.ability, c.attacks, c.text]);
   c.dup = groups.has(key);
   if (!c.dup) groups.set(key, groups.size);
@@ -85,10 +88,10 @@ for (const c of cards) {
 
 const expansions = JSON.parse(readFileSync('node_modules/pokemon-tcg-pocket-cards/data/v5/expansions.json', 'utf8'));
 const PACKS = 'https://raw.githubusercontent.com/PocketDecks/pokemon-tcg-pocket-cards/refs/heads/main/images';
-const sets = [...new Map(src.map((c) => [c.set_code, { code: c.set_code, name: c.set_name, date: c.release_date }])).values()];
+const sets = [...new Map(src.filter((c) => !c.source).map((c) => [c.set_code, { code: c.set_code, name: c.set_name, date: c.release_date }])).values()];
 for (const s of sets) {
   const e = expansions.find((x) => x.id === s.code);
-  s.total = cards.filter((c) => c.set === s.code).length;
+  s.total = published.filter((c) => c.set === s.code).length;
   // Pack art lives at ${PACKS}/webp/packs/<id>.webp; `name` matches cards' `pack` (single-pack sets use "Booster").
   s.packs = (e?.packs || []).map((p) => ({ id: p.id, name: p.name }));
   // Promo "packs" are distribution channels with no (or missing) art; the repo has one cover per promo set.
@@ -97,7 +100,7 @@ for (const s of sets) {
 // Announced sets (hand-edited upcoming.json) drop off once their cards arrive in the source data.
 const upcoming = JSON.parse(readFileSync('upcoming.json', 'utf8')).filter((u) => !sets.some((s) => s.code === u.code));
 const total = missing.names.size + missing.text.size;
-console.log(`${cards.length} cards, ${sets.length} sets; untranslated: ${missing.names.size} names, ${missing.text.size} texts; bad {n}: ${bad.length}`);
+console.log(`${published.length} cards, ${sets.length} sets${published.length < cards.length ? ` (+${cards.length - published.length} interim, unpublished)` : ''}; untranslated: ${missing.names.size} names, ${missing.text.size} texts; bad {n}: ${bad.length}`);
 
 if (check) {
   if (bad.length) console.error('Placeholder mismatch:\n' + bad.join('\n'));
@@ -105,12 +108,12 @@ if (check) {
   process.exit(bad.length || total ? 1 : 0);
 }
 const compact = (k, v) => (v === null || v === false || v === '' ? undefined : v);
-writeFileSync('data/cards.json', JSON.stringify({ img: IMG, packImg: `${PACKS}/webp/packs`, sets, upcoming, cards }, compact));
+writeFileSync('data/cards.json', JSON.stringify({ img: IMG, packImg: `${PACKS}/webp/packs`, sets, upcoming, cards: published }, compact));
 // Tiny index for the Worker's link previews (it has ~10 ms CPU, so it can't parse cards.json).
 writeFileSync('data/og.json', JSON.stringify({
   cardImg: IMG.replace('/webp/', '/png/'),
   packImg: `${PACKS}/png/packs`,
   sets: Object.fromEntries(sets.map((s) => [s.code, [s.name, s.total, s.packs[0]?.id || null]])),
-  cards: Object.fromEntries(cards.map((c) => [c.id, [c.name, c.hp || 0, c.type === 'trainer' ? c.sub : c.ex ? 'ex' : '']])),
+  cards: Object.fromEntries(published.map((c) => [c.id, [c.name, c.hp || 0, c.type === 'trainer' ? c.sub : c.ex ? 'ex' : '']])),
 }));
 writeFileSync('i18n/missing.json', JSON.stringify({ names: [...missing.names], text: [...missing.text] }, null, 1));

@@ -1,6 +1,7 @@
 // Interim card data for a released set that the pokemon-tcg-pocket-cards package doesn't have yet, read from the
 // Limitless TCG Pocket card database (https://pocket.limitlesstcg.com; robots.txt allows it). Writes extra/<set>.json
-// in the package's card format; build.mjs merges it until the package ships the set, then this script deletes it.
+// in the package's card format. build.mjs translates these cards ahead of time but doesn't publish them (no images);
+// once the package ships the set (with images) the translations are already there and this script deletes the file.
 // Only the card text is taken (no images); cards carry no deckBuilderNr, so the site can't put them in deck codes yet.
 // One request every 1.5 s; a set is fetched again only when Limitless lists more cards than we have.
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
