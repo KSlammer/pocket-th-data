@@ -24,6 +24,8 @@ jobs:
       # No install scripts: the job holds a push token (and the update job later gets API keys).
       - run: npm ci --ignore-scripts
       - run: npm install --ignore-scripts --save-exact pokemon-tcg-pocket-cards@latest
+      # A released set the package doesn't have yet: interim card text from Limitless (extra/<set>.json).
+      - run: node scripts/limitless.mjs || echo "Limitless fallback failed; continuing without it"
       - run: npm run build
       - name: Translate new text
         env:

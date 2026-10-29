@@ -6,7 +6,7 @@
   "description": "Thai translations and built card data for Pokémon TCG Pocket (fan project)",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node scripts/build.mjs --check && node test/translate.test.mjs && node test/news.test.mjs && node test/meta.test.mjs && node test/prices.test.mjs",
+    "test": "node scripts/build.mjs --check && node test/translate.test.mjs && node test/news.test.mjs && node test/meta.test.mjs && node test/prices.test.mjs && node test/limitless.test.mjs",
     "translate": "node scripts/translate.mjs",
     "news": "node scripts/news.mjs",
     "meta": "node scripts/meta.mjs",

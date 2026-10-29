@@ -1,9 +1,17 @@
 // Builds data/cards.json from the pokemon-tcg-pocket-cards package + i18n/th.json.
 // Card text is matched as a template: numbers become {n}, then are put back in order.
 // `--check` fails if any text is untranslated or a translation drops/adds a {n}.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 
-const src = JSON.parse(readFileSync('node_modules/pokemon-tcg-pocket-cards/data/v5/cards.json', 'utf8'));
+const pkg = JSON.parse(readFileSync('node_modules/pokemon-tcg-pocket-cards/data/v5/cards.json', 'utf8'));
+// Interim cards for released sets the package doesn't have yet (scripts/limitless.mjs → extra/<set>.json).
+// They have no image or deck-builder id; trade cost comes from the newest packaged set's cost per rarity.
+const packaged = new Set(pkg.map((c) => c.set_code));
+const latest = pkg.filter((c) => c.release_date === pkg.reduce((d, c) => (c.release_date > d ? c.release_date : d), ''));
+const cost = (c) => latest.find((x) => x.rarity === c.rarity && x.ex === c.ex)?.trade_cost ?? latest.find((x) => x.rarity === c.rarity)?.trade_cost ?? null;
+const extra = (existsSync('extra') ? readdirSync('extra') : []).filter((f) => f.endsWith('.json') && !packaged.has(f.slice(0, -5)))
+  .flatMap((f) => JSON.parse(readFileSync(`extra/${f}`, 'utf8'))).map((c) => ({ ...c, trade_cost: c.tradable ? cost(c) : null }));
+const src = [...pkg, ...extra];
 const th = JSON.parse(readFileSync('i18n/th.json', 'utf8'));
 // Keys machine-translated by scripts/translate.mjs and not yet reviewed; cards show them as "AI".
 const auto = JSON.parse(readFileSync('i18n/auto.json', 'utf8'));
@@ -61,7 +69,9 @@ const cards = src.map((c) => ({
   text: text(c.card_text),
   artist: c.artist,
   // Image URLs follow one pattern; only keep ones that don't, so the app can derive the rest.
-  img: c.image === `${IMG}/${c.set_code}/${c.id.split('-')[1]}.webp` ? null : c.image,
+  // Interim cards have none yet: the app shows a placeholder.
+  img: c.source ? '/card-pending.svg' : c.image === `${IMG}/${c.set_code}/${c.id.split('-')[1]}.webp` ? null : c.image,
+  src: c.source, // "limitless" = interim text until the card data package has this set
 }));
 
 // Group prints of the same card (same name and rules text); `g` links versions, `dup` marks all but the first.

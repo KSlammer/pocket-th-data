@@ -17,6 +17,7 @@
 | `data/og.json` | ดัชนีขนาดเล็กสำหรับภาพตัวอย่างตอนแชร์ลิงก์ |
 | `i18n/missing.json` | รายการที่ยังไม่มีคำแปล (สร้างโดย build) |
 | `i18n/auto.json` | คำแปลที่ AI แปลอัตโนมัติและยังไม่มีคนตรวจ — ตรวจแล้วลบ key ออกจากไฟล์นี้ |
+| `extra/<set>.json` | ข้อความการ์ดชุดที่เพิ่งออกแต่ PocketDecks ยังไม่มี ดึงจาก [Limitless TCG Pocket Database](https://pocket.limitlesstcg.com) โดย `scripts/limitless.mjs` (ไม่มีภาพและรหัสเด็ค) จะถูกลบเองเมื่อ PocketDecks มีชุดนั้น |
 | `upcoming.json` | ชุดที่ประกาศแล้วแต่ยังไม่ออก (แก้เอง) จะหายไปเองเมื่อการ์ดชุดนั้นเข้ามา |
 
 ข้อมูลการ์ดต้นทางมาจาก [PocketDecks/pokemon-tcg-pocket-cards](https://github.com/PocketDecks/pokemon-tcg-pocket-cards) (AGPL-3.0-or-later)

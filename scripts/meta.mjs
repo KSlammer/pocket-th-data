@@ -120,7 +120,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const events = Object.values(cache).filter((e) => e.format === format);
   if (!events.length) { console.log('No tournament data; meta.json unchanged'); process.exit(0); }
   writeFileSync('meta-cache.json', JSON.stringify(cache));
-  const ids = new Set(JSON.parse(readFileSync('data/cards.json', 'utf8')).cards.map((c) => c.id));
+  // Sample lists need every card's deck-builder id for the QR code; interim cards (no `nr` yet) don't count as known.
+  const ids = new Set(JSON.parse(readFileSync('data/cards.json', 'utf8')).cards.filter((c) => c.nr).map((c) => c.id));
   const missingIds = new Set(Object.values(cache).flatMap((e) => Object.values(e.best || {}).flatMap((b) => b.list.map(([, set, num]) => cardId(set, num)))).filter((id) => !ids.has(id)));
   if (missingIds.size) console.log(`card ids not in our data: ${[...missingIds].slice(0, 20).join(' ')}`);
   const dates = events.map((e) => e.date).sort();
