@@ -1,26 +1,18 @@
-import { nuxt } from './scripts/prices.mjs';
-const UA = { 'user-agent': 'pocket-th-prices/1.0 (+https://pokedex-th.slammer.work)' };
-const j = (u) => fetch(u, { headers: UA }).then((r) => r.json());
-const T = 'https://www.tcgthailand.com';
-const page = async (q) => { for (let t = 0; t < 4; t++) { const d = await fetch(`${T}/product?${q}`, { headers: UA, signal: AbortSignal.timeout(40000) }).then(async (r) => r.ok ? nuxt(await r.text())?.data : null).catch(() => null); if (d?.['product-listing']?.total || t === 3) return d; await new Promise((r) => setTimeout(r, 5000)); } return null; };
-const home = await page('page=1');
-console.log('home keys', Object.keys(home || {}));
-const cats = Object.values(home || {}).flatMap((v) => (Array.isArray(v?.data) ? v.data : [])).filter((c) => c?.id && c?.name);
-for (const c of cats) console.log('CAT', c.id, c.name, 'sets', c.sets?.length, Object.keys(c).join(','));
-const sample = home?.['product-listing']?.products?.[0];
-console.log('product keys', sample && JSON.stringify(sample).slice(0, 1500));
-const th = cats.find((c) => /โปเกมอน/.test(c.name));
-for (const q of ['keyword=%E0%B8%81%E0%B8%A5%E0%B9%88%E0%B8%AD%E0%B8%87', 'keyword=box', 'keyword=%E0%B8%8B%E0%B8%AD%E0%B8%87']) {
-  const d = await page(`category_ids=${th.id}&${q}&page=1`);
-  const l = d?.['product-listing'];
-  console.log('SEARCH', q, 'total', l?.total, (l?.products || []).slice(0, 15).map((p) => `${p.name} / ${p.alternative_name} / ${p.min_price} / type=${p.product_type ?? p.type ?? ''}`).join(' | '));
+const get = (u) => fetch(u, { headers: { 'user-agent': 'pocket-th/1.0 (+https://pokedex-th.slammer.work)' }, signal: AbortSignal.timeout(30000) });
+const s = await (await get('https://api.tcgdex.net/v2/en/series/tcgp')).json().catch(() => null);
+console.log('tcgdex tcgp sets', s?.sets?.slice(-5).map((x) => `${x.id} ${x.name} ${x.cardCount?.total}/${x.cardCount?.official}`));
+for (const id of ['C1', 'c1', 'C01']) {
+  const r = await get(`https://api.tcgdex.net/v2/en/sets/${id}`);
+  const j = r.ok ? await r.json() : null;
+  console.log('tcgdex', id, r.status, j && `${j.name} ${j.releaseDate} cards=${j.cards?.length} ${j.cards?.slice(0, 5).map((c) => c.name).join(',')}`);
+  if (j?.cards?.length) {
+    const c = await (await get(`https://api.tcgdex.net/v2/en/cards/${j.cards[0].id}`)).json();
+    console.log('sample card', JSON.stringify(c).slice(0, 1200));
+    const th = await get(`https://api.tcgdex.net/v2/th/sets/${id}`); console.log('th', th.status);
+    break;
+  }
 }
-let zero = 0;
-for (const s of th.sets) {
-  const d = await page(`category_ids=${th.id}&set_ids=${s.id}&page=1`);
-  const l = d?.['product-listing'];
-  if (!l?.total) zero++;
-  console.log('SET', s.name, 'total', l?.total ?? 'none', 'perPage', l?.products?.length, Object.keys(s).join(','));
-  await new Promise((r) => setTimeout(r, 1500));
+for (const u of ['https://pocket.limitlesstcg.com/cards/C1', 'https://pocket.limitlesstcg.com/cards']) {
+  const r = await get(u); const t = r.ok ? await r.text() : '';
+  console.log(u, r.status, (t.match(/Dual Fusion[^<]{0,80}/) || [''])[0], (t.match(/C1[^<]{0,40}/) || [''])[0]);
 }
-console.log('zero sets', zero);
