@@ -1,4 +1,10 @@
 {
- "names": [],
- "text": []
+ "names": [
+  "Psychic Blaster",
+  "Perplex"
+ ],
+ "text": [
+  "Flip a coin for each [P] Energy attached to this Pokémon. This attack does {n} damage for each heads.",
+  "Move all [P] Energy from {n} of your Benched [P] Pokémon to your Mega Mewtwo Y ex in the Active Spot."
+ ]
 }
