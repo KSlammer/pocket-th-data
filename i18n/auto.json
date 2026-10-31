@@ -46,7 +46,9 @@
   "Clean Hit",
   "Powered Ball",
   "Immunity",
-  "Hyper Lariat"
+  "Hyper Lariat",
+  "Psychic Blaster",
+  "Perplex"
  ],
  "text": [
   "Reveal all of the Sweet Honey in your hand, and this attack does {n} damage for each card you revealed in this way.",
@@ -80,6 +82,8 @@
   "Produce {n} [F] Energy from your Energy Zone, and attach it to {n} of your Whiscash or Paldean Clodsire.",
   "Put {n} random cards from among Super Potion, Max Repel, and Full Heal from your deck into your hand.",
   "You can use this card only if you have {n} or more different Pokémon types in play. Switch your Active Pokémon with {n} of your Benched Pokémon.",
-  "Once during each player's turn, that player may use this effect. Flip a coin. If heads, draw a card."
+  "Once during each player's turn, that player may use this effect. Flip a coin. If heads, draw a card.",
+  "Flip a coin for each [P] Energy attached to this Pokémon. This attack does {n} damage for each heads.",
+  "Move all [P] Energy from {n} of your Benched [P] Pokémon to your Mega Mewtwo Y ex in the Active Spot."
  ]
 }

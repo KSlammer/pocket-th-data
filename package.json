@@ -14,6 +14,6 @@
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^1.2.0",
-    "pokemon-tcg-pocket-cards": "5.4.0"
+    "pokemon-tcg-pocket-cards": "5.5.1"
   }
 }

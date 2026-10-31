@@ -1322,7 +1322,9 @@
   "Clean Hit": "โดนเต็มๆ",
   "Powered Ball": "ลูกบอลพลัง",
   "Immunity": "ภูมิคุ้มกัน",
-  "Hyper Lariat": "ไฮเปอร์ลาเรียต"
+  "Hyper Lariat": "ไฮเปอร์ลาเรียต",
+  "Psychic Blaster": "ไซคิกบลาสเตอร์",
+  "Perplex": "สับสน"
  },
  "text": {
   "A card from among both player's hands is chosen at random, revealed to the other player, and shuffled into its owner's deck.": "สุ่มเลือกการ์ด 1 ใบจากมือของผู้เล่นทั้งสองฝ่าย เปิดให้อีกฝ่ายดู แล้วสับกลับเข้าสำรับของเจ้าของการ์ด",
@@ -2073,6 +2075,8 @@
   "Produce {n} [F] Energy from your Energy Zone, and attach it to {n} of your Whiscash or Paldean Clodsire.": "นำพลังงาน [F] {n} ใบจากโซนพลังงานมาติดให้ Whiscash หรือ Paldean Clodsire ของเรา {n} ตัว",
   "Put {n} random cards from among Super Potion, Max Repel, and Full Heal from your deck into your hand.": "สุ่มการ์ด {n} ใบจาก Super Potion, Max Repel, และ Full Heal ในสำรับขึ้นมือ",
   "You can use this card only if you have {n} or more different Pokémon types in play. Switch your Active Pokémon with {n} of your Benched Pokémon.": "ใช้การ์ดนี้ได้เฉพาะเมื่อเรามีโปเกมอนประเภทต่างกันตั้งแต่ {n} ประเภทขึ้นไปในสนาม สลับโปเกมอนตัวต่อสู้ของเรากับโปเกมอนบนเบนช์ของเรา {n} ตัว",
-  "Once during each player's turn, that player may use this effect. Flip a coin. If heads, draw a card.": "ในเทิร์นของผู้เล่นแต่ละคน 1 ครั้ง ผู้เล่นคนนั้นใช้ผลนี้ได้ ทอยเหรียญ 1 ครั้ง ถ้าออกหัว จั่วการ์ด 1 ใบ"
+  "Once during each player's turn, that player may use this effect. Flip a coin. If heads, draw a card.": "ในเทิร์นของผู้เล่นแต่ละคน 1 ครั้ง ผู้เล่นคนนั้นใช้ผลนี้ได้ ทอยเหรียญ 1 ครั้ง ถ้าออกหัว จั่วการ์ด 1 ใบ",
+  "Flip a coin for each [P] Energy attached to this Pokémon. This attack does {n} damage for each heads.": "ทอยเหรียญ 1 ครั้งต่อพลังงาน [P] ที่ติดอยู่กับโปเกมอนตัวนี้ 1 ใบ ท่านี้สร้างความเสียหาย {n} ต่อหัว 1 ครั้ง",
+  "Move all [P] Energy from {n} of your Benched [P] Pokémon to your Mega Mewtwo Y ex in the Active Spot.": "ย้ายพลังงาน [P] ทั้งหมดจากโปเกมอน [P] บนเบนช์ของเรา {n} ตัวไปที่ Mega Mewtwo Y ex ในตำแหน่งต่อสู้ของเรา"
  }
 }
