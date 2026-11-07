@@ -1,10 +1,6 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
-const get = (u) => fetch(u, { headers: { 'user-agent': 'pocket-th/1.0 (+https://pokedex-th.slammer.work)' } }).then((r) => r.text());
+const get = (u) => fetch(u, { headers: { 'user-agent': 'Mozilla/5.0 (compatible; pocket-th/1.0; +https://pokedex-th.slammer.work)' }, signal: AbortSignal.timeout(30000) }).then(async (r) => [r.status, await r.text()]).catch((e) => [0, e.message]);
 mkdirSync('html', { recursive: true });
-writeFileSync('html/list.html', await get('https://pocket.limitlesstcg.com/cards/C1'));
-for (const n of [1, 2, 30, 60, 100, 150, 170, 190, 200, 210, 217]) {
-  writeFileSync(`html/${n}.html`, await get(`https://pocket.limitlesstcg.com/cards/C1/${n}`));
-  await new Promise((r) => setTimeout(r, 1500));
+for (const [f, u] of [['snkr-terms.html', 'https://snkrdunk.com/terms'], ['snkr-robots.txt', 'https://snkrdunk.com/robots.txt'], ['snkr-en-terms.html', 'https://snkrdunk.com/en/terms']]) {
+  const [s, t] = await get(u); console.log(u, s, t.length); writeFileSync(`html/${f}`, t);
 }
-writeFileSync('html/b4b-28.html', await get('https://pocket.limitlesstcg.com/cards/B4b/28'));
-writeFileSync('html/b4b-212.html', await get('https://pocket.limitlesstcg.com/cards/B4b/212'));
