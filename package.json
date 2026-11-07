@@ -10,7 +10,8 @@
     "translate": "node scripts/translate.mjs",
     "news": "node scripts/news.mjs",
     "meta": "node scripts/meta.mjs",
-    "prices": "node scripts/prices.mjs"
+    "prices": "node scripts/prices.mjs",
+    "review": "node scripts/review.mjs"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^1.2.0",
