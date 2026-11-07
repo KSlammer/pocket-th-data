@@ -102,7 +102,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (!n) { console.log('Nothing to translate'); process.exit(0); }
   if (!llm()) { console.log('No OPENROUTER_API_KEY or ANTHROPIC_API_KEY; skipping translation'); process.exit(1); }
   const left = await translate({ llm: llm(), th, missing, auto });
-  writeFileSync('i18n/th.json', JSON.stringify(th, null, 1));
+  writeFileSync('i18n/th.json', JSON.stringify(th, null, 1) + '\n');
   writeFileSync('i18n/auto.json', JSON.stringify(auto, null, 1) + '\n');
   console.log(`Translated ${n - left.length}/${n}`);
   if (left.length) { console.error('Still missing:\n' + left.join('\n')); process.exit(1); }

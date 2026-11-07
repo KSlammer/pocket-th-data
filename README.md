@@ -22,6 +22,8 @@
 
 ข้อมูลการ์ดต้นทางมาจาก [PocketDecks/pokemon-tcg-pocket-cards](https://github.com/PocketDecks/pokemon-tcg-pocket-cards) (AGPL-3.0-or-later)
 
+> สำหรับคนหรือ Claude ที่จะแก้โค้ดใน repo นี้: แผนที่ pipeline รูปแบบข้อมูล และสูตรการแก้งาน อยู่ใน skill `.claude/skills/pocket-th-data/SKILL.md`
+
 ## ช่วยแก้คำแปล
 
 1. แก้ `i18n/th.json`
