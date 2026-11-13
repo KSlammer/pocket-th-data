@@ -1,6 +1,25 @@
 {
  "items": [
   {
+   "title": "Pokémon Pocket lost 9 million users and 60% profit in the last year",
+   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE80M2sxUXdpT0VzaGg1M2FKLXc0YjkxYVN3aWZPNWpyZE8yQlBvMEJENTFyNXBwbThiV1VmeTBDN05peXhzU3dySW9mVVROVF9zVGFxb29qRGt6ZVItR20wOHZuSGRqVEVuRTZR?oc=5",
+   "date": "2026-11-13T17:58:53.000Z",
+   "source": "Wargamer",
+   "kind": "news",
+   "img": "https://www.wargamer.com/wp-content/sites/wargamer/2026/11/pokemon-tcg-pocket-q2-2026-results.jpg",
+   "th": "Pokémon Pocket เสียผู้เล่น 9 ล้านคน และกำไรหายไป 60% ในปีที่ผ่านมา",
+   "url": "https://www.wargamer.com/pokemon-tcg-pocket/q2-2026-results"
+  },
+  {
+   "title": "We're 2 years deep. Why are we reusing Pokemon this often? Why do we need 5 Salazzles??",
+   "link": "https://www.reddit.com/r/PTCGP/comments/1xv94l6/were_2_years_deep_why_are_we_reusing_pokemon_this/",
+   "date": "2026-11-13T14:20:41.000Z",
+   "source": "r/PTCGP",
+   "kind": "community",
+   "img": "https://preview.redd.it/06wembym2e1i1.jpeg?width=640&crop=smart&auto=webp&s=4ded991ce6d6bd0346a06680171921dd28f5105a",
+   "th": "มาสองปีแล้ว ทำไมต้องนำ Pokémon กลับมาใช้บ่อยแบบนี้? ทำไมต้องมี Salazzle ตั้ง 5 ตัว??"
+  },
+  {
    "title": "Has anyone else given up on Wonder Picks?",
    "link": "https://www.reddit.com/r/PTCGP/comments/1xuhfml/has_anyone_else_given_up_on_wonder_picks/",
    "date": "2026-11-12T16:34:04.000Z",
@@ -35,6 +54,15 @@
    "kind": "community",
    "img": "https://preview.redd.it/83awim1ph21i1.jpeg?width=320&crop=smart&auto=webp&s=6cd942d2bc59f44c264fedb045b01e5305986f88",
    "th": "ใครรู้บ้างว่าจะได้รูปโปรไฟล์นี้มาได้อย่างไร"
+  },
+  {
+   "title": "Prickly Powder is based",
+   "link": "https://www.reddit.com/r/PTCGP/comments/1xtpnyk/prickly_powder_is_based/",
+   "date": "2026-11-11T18:33:31.000Z",
+   "source": "r/PTCGP",
+   "kind": "community",
+   "img": "https://preview.redd.it/3cho9m8x111i1.jpeg?width=640&crop=smart&auto=webp&s=6b1043c593c5e0bdd554be212510bf83c3b4212d",
+   "th": "Prickly Powder สุดยอด"
   },
   {
    "title": "🔴 Pokemon TCG Pocket : ไม่เด่นไม่ดัง ไม่ใช่ว่าไม่เก่งนะ",
@@ -643,12 +671,12 @@
   },
   {
    "title": "Pokemon TCG Pocket Codes (November 2026): Free Promos and Gifts",
-   "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE9GSXRKdjhnTEJFSVdkaklZNmdnUndXdENCd0U4QjlZOWRSVzNjSXNnUElUVnFjVlpIV3U2RTlyeTVYU2VxcGxqQTJ6Z0NYbGtQQlQydjEyWQ?oc=5",
+   "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE9GSXRKdjhnTEJFSVdkaklZNmdnUndXdENCd0U4QjlZOWRSVzNjSXNnUElUVnFjVlpIV3U2RTlyeTVYU2VxcGxqQTJ6Z0NYbGtQQlQydjEyWdIBXEFVX3lxTE9PY0wtSTE4ZkpJb0RxSlpjVjBINUZrU1V2Q1dZQTExQTc3cEtGNXdWNU5Gazd4SkQ2cGtxeE1YWTAtblZiQmp0Z1EtUWJpdVZEdFZGdmNnWDE1Si1V?oc=5",
    "date": "2026-11-01T07:00:00.000Z",
    "source": "Beebom",
    "kind": "news",
    "img": "https://static.beebom.com/wp-content/uploads/2025/11/Pokemon-TCG-Pocket-Codes.jpg",
-   "th": "รหัส Pokemon TCG Pocket (พฤศจิกายน 2026): ของฟรีและของขวัญ",
+   "th": "โค้ด Pokemon TCG Pocket (พฤศจิกายน 2026): โปรโมชันและของขวัญฟรี",
    "url": "https://beebom.com/pokemon-tcg-pocket-codes/"
   },
   {
@@ -718,35 +746,6 @@
    "img": "https://pokemongohub.net/wp-content/uploads/2024/11/promo-cards-pokemon-tcg-pocket.jpg",
    "th": "วิธีเก็บ Promo Cards ทั้งหมดใน Pokémon TCG Pocket",
    "url": "https://pokemongohub.net/post/tcg-pocket/how-to-get-all-promo-cards/"
-  },
-  {
-   "title": "How to get all Immersive Cards in Pokémon TCG Pocket",
-   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPb19udmpfdTFVeVJSRUtUYTVqQ1lYVm85ejN5eUR5eWlKQlBOSW5LaHZTQkFpTTBITzI4RjBScncxVjNfRk02cUc1VEk4QWZUdlBUZGx4ZENsSFp2TWFVM3ZkdG9FbDNBN1VIVHVpc2xpc3N3QVVVeDk1Zkt3TUNPaS1xOVRhQURnSE5OOFBIUU1zSVctVVdXaTln?oc=5",
-   "date": "2026-10-31T16:40:07.000Z",
-   "source": "Pokémon GO Hub",
-   "kind": "news",
-   "img": "https://pokemongohub.net/wp-content/uploads/2024/11/immersive-cover.jpg",
-   "th": "วิธีเก็บ Immersive Cards ทั้งหมดใน Pokémon TCG Pocket",
-   "url": "https://pokemongohub.net/post/tcg-pocket/how-to-get-all-immersive-cards-in-pokemon-tcg-pocket/"
-  },
-  {
-   "title": "The AI defeated itself on turn 1 with Mirmaidon and the Prof. Turo",
-   "link": "https://www.reddit.com/r/PTCGP/comments/1xkd2bm/the_ai_defeated_itself_on_turn_1_with_mirmaidon/",
-   "date": "2026-10-31T15:26:21.000Z",
-   "source": "r/PTCGP",
-   "kind": "community",
-   "img": "https://preview.redd.it/vhzy8ip8mtyh1.jpeg?width=640&crop=smart&auto=webp&s=c5a12a6819e9c936d19238790e4a68a13d19bdc0",
-   "th": "AI แพ้ตัวเองในเทิร์นแรก ด้วย Miraidon และ Prof. Turo"
-  },
-  {
-   "title": "Pokemon TCG Pocket Roadmap (All Upcoming Cards & Events)",
-   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxNREc2SUJjVlhmWUtWdURiRjdDNE4zUkVHdHZzeHo3YTRDX1dLSkxzb2otOUc1cUI3N1lQWFlrNkQ3NXpEMVRZYmx5U2VLRVVGeFBaTEtYQjlOZHhlTFpYRkYtdXhPQ0d5Q2ZKV3dyVjRUUEQyejB1TUlON3B5WjZCd0dNbw?oc=5",
-   "date": "2026-10-31T13:00:14.000Z",
-   "source": "GameRant",
-   "kind": "news",
-   "img": "https://static0.gamerantimages.com/wordpress/wp-content/uploads/wm/2025/04/img_7277.jpeg?w=1600&h=900&fit=crop",
-   "th": "Pokemon TCG Pocket Roadmap การ์ดและอีเวนต์ที่กำลังจะมาทั้งหมด",
-   "url": "https://gamerant.com/coming-soon-pokemon-tcg-pocket-roadmap-new-cards-events/"
   }
  ]
 }
